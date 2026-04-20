@@ -4,11 +4,103 @@ import { useState, useRef, useEffect } from 'react'
 
 const EMAIL_KEY = 'ask_amit_email'
 
-const suggestedQuestions = [
+const QUESTION_POOL = [
   "What drives India's competitiveness?",
-  'What is the 4S framework?',
-  'Tell me about The Age of Awakening',
+  'How does the 4S framework work?',
+  'Core argument of Age of Awakening?',
+  "India's invisible urban fault line?",
+  'Can AI grow beyond the metros?',
+  "Nehru-era policy's legacy today?",
+  'What did 1991 actually change?',
+  'Strategy for emerging-market leaders?',
+  'Competitiveness vs prosperity gap?',
+  'Why the civic compact matters?',
+  'How to read Indira-era economics?',
+  'What does SPI miss about India?',
+  'Post-reform progress by region?',
+  'AI constraints in Tier 2/3 cities?',
 ]
+
+const FOLLOWUP_BY_SOURCE: Record<string, string[]> = {
+  'Age of Awakening': [
+    'What drove the 1991 turn?',
+    "Nehru-era's legacy today?",
+    'Indira-era political economy?',
+    "India's pre-1991 trap?",
+  ],
+  'Elephant Moves': [
+    'Define the 4S framework',
+    'Competitiveness vs prosperity?',
+    'How do Indian states diverge?',
+    'Path to shared prosperity?',
+  ],
+  'Riding the Tiger': [
+    'Strategy for EM leaders?',
+    'Biggest risks to manage?',
+    'What makes tigers different?',
+  ],
+  'Urban Fault Line': [
+    'What is the civic compact?',
+    'Why ward-level participation?',
+    'Beyond capex reforms?',
+    'Who enforces accountability?',
+  ],
+  'AI Growth Beyond Metros': [
+    'Tier 2/3 AI constraints?',
+    'Compute vs skills gap?',
+    'A phased AI rollout?',
+    'Who finances the gap?',
+  ],
+  Arthsastra: [
+    'Your Stanford thesis?',
+    "India's growth path?",
+    'Role of institutions?',
+  ],
+}
+
+const GENERAL_FOLLOWUPS = [
+  'Why does this matter now?',
+  'What would you do first?',
+  'Where is the tension?',
+  'Any numbers to anchor this?',
+]
+
+const sampleN = <T,>(pool: T[], n: number): T[] => {
+  const copy = [...pool]
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[copy[i], copy[j]] = [copy[j], copy[i]]
+  }
+  return copy.slice(0, n)
+}
+
+const sampleThree = (pool: string[]): string[] => sampleN(pool, 3)
+
+const getFollowups = (sourceTitles: string[], alreadyAsked: Set<string>): string[] => {
+  const buckets: string[] = []
+  for (const title of sourceTitles) {
+    for (const key of Object.keys(FOLLOWUP_BY_SOURCE)) {
+      if (title.toLowerCase().includes(key.toLowerCase())) {
+        buckets.push(...FOLLOWUP_BY_SOURCE[key])
+      }
+    }
+  }
+  const seen = new Set<string>()
+  const unique = buckets.filter((q) => {
+    const k = q.toLowerCase()
+    if (seen.has(k) || alreadyAsked.has(k)) return false
+    seen.add(k)
+    return true
+  })
+  const picked = sampleN(unique, 3)
+  if (picked.length < 3) {
+    const filler = GENERAL_FOLLOWUPS.filter(
+      (q) => !alreadyAsked.has(q.toLowerCase()) && !picked.includes(q),
+    )
+    picked.push(...sampleN(filler, 3 - picked.length))
+  }
+  return picked
+}
 
 const exploreTopics = [
   "India's GDP methodology",
@@ -83,6 +175,7 @@ function AskAmitWidget() {
   const [open, setOpen] = useState(false)
   const [input, setInput] = useState('')
   const [messages, setMessages] = useState<Msg[]>([])
+  const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>(() => sampleThree(QUESTION_POOL))
   const [streaming, setStreaming] = useState(false)
   const [playingIdx, setPlayingIdx] = useState<number | null>(null)
   const [loadingIdx, setLoadingIdx] = useState<number | null>(null)
@@ -153,6 +246,7 @@ function AskAmitWidget() {
     window.localStorage.removeItem(EMAIL_KEY)
     setUserEmail(null)
     setMessages([])
+    setSuggestedQuestions(sampleThree(QUESTION_POOL))
   }
 
   const handleListen = async (idx: number, text: string) => {
@@ -301,12 +395,13 @@ function AskAmitWidget() {
     stopAudio()
     setMessages([])
     setInput('')
+    setSuggestedQuestions(sampleThree(QUESTION_POOL))
   }
 
   return (
-    <div className="fixed bottom-6 left-6 z-50 flex flex-col items-start">
+    <div className="fixed bottom-4 left-4 right-4 sm:right-auto sm:bottom-6 sm:left-6 z-50 flex flex-col items-start">
       {open && (
-        <div className="mb-3 w-[min(480px,calc(100vw-2rem))] bg-white border border-gray-200 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.25)] rounded-3xl rounded-bl-md overflow-hidden flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-300">
+        <div className="mb-3 w-full sm:w-[min(480px,calc(100vw-3rem))] bg-white border border-gray-200 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.25)] rounded-3xl rounded-bl-md overflow-hidden flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-300">
           {/* Header */}
           <div className="px-5 py-4 border-b border-gray-100 flex items-start gap-3 bg-gradient-to-b from-white to-gray-50/60">
             <AmitMonogram size={40} />
@@ -347,7 +442,7 @@ function AskAmitWidget() {
           {/* Body */}
           <div
             ref={scrollRef}
-            className="px-5 py-5 h-[460px] overflow-y-auto flex flex-col gap-5 bg-white"
+            className="px-5 py-5 h-[min(460px,calc(100vh-260px))] overflow-y-auto flex flex-col gap-5 bg-white"
           >
             {messages.length === 0 ? (
               <div className="flex flex-col gap-4 my-auto">
@@ -383,6 +478,14 @@ function AskAmitWidget() {
                   ? Array.from(new Set(msg.sources.map((s) => s.title)))
                   : []
                 const canListen = msg.role === 'ai' && !streaming && displayText.length > 10
+                const showFollowups =
+                  isLastAi && !streaming && uniqueTitles.length > 0 && displayText.length > 10
+                const askedSet = new Set(
+                  messages
+                    .filter((m) => m.role === 'user')
+                    .map((m) => m.text.toLowerCase()),
+                )
+                const followups = showFollowups ? getFollowups(uniqueTitles, askedSet) : []
 
                 return (
                   <div key={i} className={`flex flex-col gap-2 ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
@@ -464,6 +567,27 @@ function AskAmitWidget() {
                         )}
                       </div>
                     )}
+                    {showFollowups && followups.length > 0 && (
+                      <div className="flex flex-col gap-1.5 pt-2 w-full">
+                        <span className="text-[9px] text-gray-400 tracking-[1.5px] uppercase font-semibold">
+                          Follow up
+                        </span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {followups.map((q, k) => (
+                            <button
+                              key={k}
+                              onClick={() => {
+                                setInput(q)
+                                inputRef.current?.focus()
+                              }}
+                              className="text-left text-[12px] text-gray-700 bg-gray-50 px-3 py-1.5 rounded-full hover:bg-red-50 hover:text-accent transition-all border border-gray-200 hover:border-accent/30"
+                            >
+                              {q}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )
               })
@@ -492,7 +616,7 @@ function AskAmitWidget() {
                   onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                   placeholder={streaming ? 'Amit is thinking...' : 'Ask a question...'}
                   disabled={streaming}
-                  className="flex-1 text-[13px] border border-gray-200 px-4 py-3 rounded-xl focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/10 transition-all placeholder:text-gray-400 disabled:bg-gray-100 bg-white"
+                  className="flex-1 min-w-0 text-[16px] sm:text-[13px] border border-gray-200 px-4 py-3 rounded-xl focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/10 transition-all placeholder:text-gray-400 disabled:bg-gray-100 bg-white"
                 />
                 <button
                   onClick={handleSend}
@@ -522,7 +646,7 @@ function AskAmitWidget() {
                   placeholder="you@example.com"
                   type="email"
                   autoComplete="email"
-                  className="flex-1 text-[13px] border border-gray-200 px-4 py-3 rounded-xl focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/10 placeholder:text-gray-400 bg-white"
+                  className="flex-1 min-w-0 text-[16px] sm:text-[13px] border border-gray-200 px-4 py-3 rounded-xl focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/10 placeholder:text-gray-400 bg-white"
                 />
                 <button
                   onClick={handleEmailSubmit}
