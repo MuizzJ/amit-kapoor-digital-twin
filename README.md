@@ -15,19 +15,47 @@ Stack: Next.js 14 · Anthropic Claude Sonnet 4.6 · Pinecone (integrated inferen
 
 ## Architecture
 
-```
-  [PDF / PPTX / TXT / YouTube]
-            │
-            ▼
-   scripts/ingest.ts  →  chunk (700w / 100 overlap)  →  Pinecone (integrated inference, llama-text-embed-v2, 1024-dim)
-                                                              │
-                                                              ▼
-   Browser widget → /api/rag → Pinecone top-k retrieval → Claude Sonnet 4.6 (stream) → SSE → widget
-                                                                                          │
-                                                                                    "Listen" click
-                                                                                          │
-                                                                                          ▼
-                                                                              /api/tts → ElevenLabs → MP3 stream
+```mermaid
+flowchart TB
+    subgraph ingest ["&nbsp;Ingest &middot; offline&nbsp;"]
+        SRC["PDF &nbsp;&middot;&nbsp; PPTX &nbsp;&middot;&nbsp; TXT &nbsp;&middot;&nbsp; YouTube"]
+        ING["<b>scripts/ingest.ts</b><br/><i>chunk 700w, 100 overlap</i>"]
+        SRC --> ING
+    end
+
+    subgraph query ["&nbsp;Query &middot; live&nbsp;"]
+        W["<b>Browser Widget</b>"]
+        RAG["<b>/api/rag</b>"]
+        CLAUDE["<b>Claude Sonnet 4.6</b><br/><i>streaming</i>"]
+        W -- "POST question" --> RAG
+        RAG -- "context + prompt" --> CLAUDE
+        CLAUDE -- "SSE tokens" --> W
+    end
+
+    subgraph voice ["&nbsp;Voice &middot; on demand&nbsp;"]
+        TTS["<b>/api/tts</b>"]
+        EL["<b>ElevenLabs</b><br/><i>cloned voice</i>"]
+        W -- "Listen click" --> TTS
+        TTS --> EL
+        EL -- "MP3 stream" --> W
+    end
+
+    PC[("<b>Pinecone</b><br/><i>llama-text-embed-v2, 1024-dim</i>")]
+    ING -- "upsert" --> PC
+    RAG -- "top-k search" --> PC
+    PC -- "chunks" --> RAG
+
+    classDef store fill:#dcfce7,stroke:#16a34a,color:#14532d,stroke-width:2px
+    classDef ai fill:#fce7f3,stroke:#db2777,color:#831843
+    classDef client fill:#dbeafe,stroke:#2563eb,color:#1e3a8a
+    classDef route fill:#ede9fe,stroke:#7c3aed,color:#4c1d95
+    classDef source fill:#f1f5f9,stroke:#64748b,color:#0f172a
+
+    class PC store
+    class CLAUDE,EL ai
+    class W client
+    class RAG,TTS,ING route
+    class SRC source
 ```
 
 See `ARCHITECTURE.md` for the detailed end-to-end breakdown.
@@ -40,8 +68,8 @@ See `ARCHITECTURE.md` for the detailed end-to-end breakdown.
 
 ### 2. Install
 ```bash
-git clone https://github.com/MuizzJ/ask-amit.git
-cd ask-amit
+git clone https://github.com/MuizzJ/amit-kapoor-digital-twin.git
+cd amit-kapoor-digital-twin
 npm install
 ```
 
