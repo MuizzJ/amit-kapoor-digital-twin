@@ -40,6 +40,7 @@ const TITLE_MAP: Record<string, string> = {
   'Riding_The_Tiger.md': 'Riding the Tiger',
   'Riding_The_Tiger.pptx': 'Riding the Tiger',
   'AI_Growth_Beyond_Metros.txt': "AI Growth Beyond Metros, Financial Express (Mar 2026)",
+  'Urban_Fault_Line.txt': "Invisible Urban Fault Line, Business Standard (Mar 2026)",
   'yt_Keynote_by_Amit_Kapoor_Chairman_Institute_for_Competitiveness_and_Lecturer_Stanf_8hE4HVq67R0.txt':
     'Keynote, Arthsastra (YouTube)',
 }

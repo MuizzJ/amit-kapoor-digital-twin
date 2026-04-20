@@ -25,6 +25,11 @@ const stripInlineCitations = (text: string): string =>
   text
     .replace(/\s*\[[^\]]*?(?:chunk|pg|page|p\.\s*\d|passage|book)[^\]]*?\]/gi, '')
     .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/\*\*([^*\n]+?)\*\*/g, '$1')
+    .replace(/(^|[^*])\*([^*\n]+?)\*(?!\*)/g, '$1$2')
+    .replace(/(^|[^_\w])_([^_\n]+?)_(?![_\w])/g, '$1$2')
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/`([^`\n]+?)`/g, '$1')
     .replace(/\s+([.,;:!?])/g, '$1')
     .replace(/\n{3,}/g, '\n\n')
     .trim()
