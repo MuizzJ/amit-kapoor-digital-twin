@@ -10,7 +10,7 @@ import {
 } from '@/lib/ratelimit'
 
 const MODEL = 'claude-sonnet-4-6'
-const INDEX_NAME = process.env.PINECONE_INDEX_NAME || 'ask-amit'
+const INDEX_NAME = (process.env.PINECONE_INDEX_NAME || 'ask-amit').trim()
 const NAMESPACE = 'books'
 const TOP_K = 6
 const MAX_TOKENS = 600
@@ -55,7 +55,7 @@ export async function POST(req: Request) {
     const lastUser = [...messages].reverse().find((m: any) => m.role === 'user')
     if (!lastUser?.content) return new Response('no user message', { status: 400 })
 
-    const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY! })
+    const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY!.trim() })
     const index = pc.index(INDEX_NAME).namespace(NAMESPACE)
 
     const search = await index.searchRecords({
@@ -71,7 +71,7 @@ export async function POST(req: Request) {
       )
       .join('\n\n---\n\n')
 
-    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
+    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY!.trim() })
 
     const systemBlocks: any[] = [
       { type: 'text', text: loadSystemPrompt() },

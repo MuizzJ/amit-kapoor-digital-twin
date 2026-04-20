@@ -9,7 +9,7 @@ import {
 export const runtime = 'nodejs'
 export const maxDuration = 30
 
-const DEFAULT_VOICE = process.env.ELEVENLABS_VOICE_ID || 'TvgKRDHpNi1aqml8qok6'
+const DEFAULT_VOICE = (process.env.ELEVENLABS_VOICE_ID || 'TvgKRDHpNi1aqml8qok6').trim()
 const MODEL_ID = 'eleven_turbo_v2_5'
 const MAX_CHARS = 1200
 
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
     const trimmed = text.slice(0, MAX_CHARS).trim()
     if (!trimmed) return new Response('empty text', { status: 400 })
 
-    const client = new ElevenLabsClient({ apiKey: process.env.ELEVENLABS_API_KEY! })
+    const client = new ElevenLabsClient({ apiKey: process.env.ELEVENLABS_API_KEY!.trim() })
 
     const audioStream = await client.textToSpeech.stream(DEFAULT_VOICE, {
       text: trimmed,
