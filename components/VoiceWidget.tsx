@@ -2,6 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react'
 
+const EMAIL_KEY = 'ask_amit_email'
+
 const suggestedQuestions = [
   "What drives India's competitiveness?",
   'What is the 4S framework?',
@@ -70,16 +72,26 @@ function SpinnerIcon({ className = 'w-3 h-3' }: { className?: string }) {
 }
 
 function AskAmitWidget() {
+  const [userEmail, setUserEmail] = useState<string | null>(null)
+  const [emailInput, setEmailInput] = useState('')
+  const [emailError, setEmailError] = useState<string | null>(null)
   const [open, setOpen] = useState(false)
   const [input, setInput] = useState('')
   const [messages, setMessages] = useState<Msg[]>([])
   const [streaming, setStreaming] = useState(false)
   const [playingIdx, setPlayingIdx] = useState<number | null>(null)
   const [loadingIdx, setLoadingIdx] = useState<number | null>(null)
+
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const currentUrlRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const saved = window.localStorage.getItem(EMAIL_KEY)
+    if (saved) setUserEmail(saved)
+  }, [])
 
   useEffect(() => {
     scrollRef.current?.scrollTo({
@@ -119,6 +131,25 @@ function AskAmitWidget() {
     setLoadingIdx(null)
   }
 
+  const handleEmailSubmit = () => {
+    const e = emailInput.trim().toLowerCase()
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) {
+      setEmailError('Enter a valid email address.')
+      return
+    }
+    window.localStorage.setItem(EMAIL_KEY, e)
+    setUserEmail(e)
+    setEmailError(null)
+    setEmailInput('')
+  }
+
+  const handleSignOut = () => {
+    stopAudio()
+    window.localStorage.removeItem(EMAIL_KEY)
+    setUserEmail(null)
+    setMessages([])
+  }
+
   const handleListen = async (idx: number, text: string) => {
     if (playingIdx === idx) {
       stopAudio()
@@ -130,9 +161,20 @@ function AskAmitWidget() {
     try {
       const res = await fetch('/api/tts', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(userEmail ? { 'X-User-Email': userEmail } : {}),
+        },
         body: JSON.stringify({ text }),
       })
+      if (res.status === 401) {
+        handleSignOut()
+        throw new Error('Session expired — please re-enter your email.')
+      }
+      if (res.status === 429) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(body.message || 'Listen cap reached.')
+      }
       if (!res.ok) throw new Error(`TTS failed (${res.status})`)
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
@@ -173,7 +215,10 @@ function AskAmitWidget() {
     try {
       const res = await fetch('/api/rag', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(userEmail ? { 'X-User-Email': userEmail } : {}),
+        },
         body: JSON.stringify({
           messages: history.map((m) => ({
             role: m.role === 'ai' ? 'assistant' : 'user',
@@ -182,6 +227,14 @@ function AskAmitWidget() {
         }),
       })
 
+      if (res.status === 401) {
+        handleSignOut()
+        throw new Error('Email not authorized for this preview.')
+      }
+      if (res.status === 429) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(body.message || 'Preview cap reached. Try again later.')
+      }
       if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`)
 
       const reader = res.body.getReader()
@@ -412,28 +465,73 @@ function AskAmitWidget() {
             )}
           </div>
 
-          {/* Input */}
-          <div className="px-5 py-4 flex gap-2 border-t border-gray-100 bg-gradient-to-b from-gray-50/30 to-gray-50/60">
-            <input
-              ref={inputRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-              placeholder={streaming ? 'Amit is thinking...' : 'Ask a question...'}
-              disabled={streaming}
-              className="flex-1 text-[13px] border border-gray-200 px-4 py-3 rounded-xl focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/10 transition-all placeholder:text-gray-400 disabled:bg-gray-100 bg-white"
-            />
-            <button
-              onClick={handleSend}
-              disabled={streaming || !input.trim()}
-              className="bg-accent text-white px-4 py-3 rounded-xl hover:bg-[#0a0a0a] transition-all font-bold disabled:opacity-40 disabled:cursor-not-allowed shadow-sm hover:shadow-md flex items-center justify-center"
-              aria-label="Send"
-            >
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M2 21l21-9L2 3v7l15 2-15 2v7z" />
-              </svg>
-            </button>
-          </div>
+          {/* Input or email gate */}
+          {userEmail ? (
+            <div className="flex flex-col border-t border-gray-100 bg-gradient-to-b from-gray-50/30 to-gray-50/60">
+              <div className="px-5 pt-2.5 pb-0.5 flex items-center justify-between">
+                <span className="text-[10px] text-gray-400 tracking-wide truncate max-w-[70%]">
+                  Access as {userEmail}
+                </span>
+                <button
+                  onClick={handleSignOut}
+                  className="text-[10px] tracking-[1.5px] uppercase text-gray-400 hover:text-accent transition-colors font-semibold"
+                >
+                  Change
+                </button>
+              </div>
+              <div className="px-5 py-3 flex gap-2">
+                <input
+                  ref={inputRef}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                  placeholder={streaming ? 'Amit is thinking...' : 'Ask a question...'}
+                  disabled={streaming}
+                  className="flex-1 text-[13px] border border-gray-200 px-4 py-3 rounded-xl focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/10 transition-all placeholder:text-gray-400 disabled:bg-gray-100 bg-white"
+                />
+                <button
+                  onClick={handleSend}
+                  disabled={streaming || !input.trim()}
+                  className="bg-accent text-white px-4 py-3 rounded-xl hover:bg-[#0a0a0a] transition-all font-bold disabled:opacity-40 disabled:cursor-not-allowed shadow-sm hover:shadow-md flex items-center justify-center"
+                  aria-label="Send"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M2 21l21-9L2 3v7l15 2-15 2v7z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="px-5 py-6 border-t border-gray-100 bg-gradient-to-b from-gray-50/30 to-gray-50/60 flex flex-col items-center gap-3">
+              <p className="text-[12px] text-gray-500 text-center leading-relaxed max-w-[300px]">
+                Private preview. Enter the email your link was sent to.
+              </p>
+              <div className="flex gap-2 w-full">
+                <input
+                  value={emailInput}
+                  onChange={(e) => {
+                    setEmailInput(e.target.value)
+                    if (emailError) setEmailError(null)
+                  }}
+                  onKeyDown={(e) => e.key === 'Enter' && handleEmailSubmit()}
+                  placeholder="you@example.com"
+                  type="email"
+                  autoComplete="email"
+                  className="flex-1 text-[13px] border border-gray-200 px-4 py-3 rounded-xl focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/10 placeholder:text-gray-400 bg-white"
+                />
+                <button
+                  onClick={handleEmailSubmit}
+                  disabled={!emailInput.trim()}
+                  className="bg-accent text-white px-4 py-3 rounded-xl hover:bg-[#0a0a0a] transition-all font-bold disabled:opacity-40 disabled:cursor-not-allowed text-[12px] tracking-wider uppercase"
+                >
+                  Enter
+                </button>
+              </div>
+              {emailError && (
+                <p className="text-[11px] text-accent leading-tight">{emailError}</p>
+              )}
+            </div>
+          )}
         </div>
       )}
 

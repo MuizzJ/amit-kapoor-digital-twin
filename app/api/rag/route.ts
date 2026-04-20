@@ -2,6 +2,12 @@ import Anthropic from '@anthropic-ai/sdk'
 import { Pinecone } from '@pinecone-database/pinecone'
 import * as fs from 'fs'
 import * as path from 'path'
+import {
+  checkLimit,
+  extractEmail,
+  limitResponse,
+  authResponse,
+} from '@/lib/ratelimit'
 
 const MODEL = 'claude-sonnet-4-6'
 const INDEX_NAME = process.env.PINECONE_INDEX_NAME || 'ask-amit'
@@ -24,6 +30,12 @@ function loadSystemPrompt(): string {
 
 export async function POST(req: Request) {
   try {
+    const email = extractEmail(req)
+    if (!email) return authResponse()
+
+    const limit = checkLimit(email, 'rag')
+    if (!limit.ok) return limitResponse(limit)
+
     const { messages } = await req.json()
     if (!Array.isArray(messages) || messages.length === 0) {
       return new Response('messages required', { status: 400 })

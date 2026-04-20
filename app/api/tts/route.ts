@@ -1,4 +1,10 @@
 import { ElevenLabsClient } from '@elevenlabs/elevenlabs-js'
+import {
+  checkLimit,
+  extractEmail,
+  limitResponse,
+  authResponse,
+} from '@/lib/ratelimit'
 
 export const runtime = 'nodejs'
 export const maxDuration = 30
@@ -9,6 +15,12 @@ const MAX_CHARS = 1200
 
 export async function POST(req: Request) {
   try {
+    const email = extractEmail(req)
+    if (!email) return authResponse()
+
+    const limit = checkLimit(email, 'tts')
+    if (!limit.ok) return limitResponse(limit)
+
     const { text } = await req.json()
     if (!text || typeof text !== 'string') {
       return new Response('text required', { status: 400 })
