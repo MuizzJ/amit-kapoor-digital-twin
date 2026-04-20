@@ -1,0 +1,518 @@
+'use client'
+
+import { useState, useRef, useEffect } from 'react'
+
+const suggestedQuestions = [
+  "What drives India's competitiveness?",
+  'What is the 4S framework?',
+  'Tell me about The Age of Awakening',
+]
+
+const exploreTopics = [
+  "India's GDP methodology",
+  'AI & economic competitiveness',
+  'Agricultural reform impact',
+  'Social progress metrics',
+  "Porter's Diamond framework",
+]
+
+type Source = { title: string; chunk_index: number; score: number }
+type Msg = { role: 'user' | 'ai'; text: string; sources?: Source[] }
+
+const stripInlineCitations = (text: string): string =>
+  text
+    .replace(/\s*\[[^\]]*?(?:chunk|pg|page|p\.\s*\d|passage|book)[^\]]*?\]/gi, '')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/\s+([.,;:!?])/g, '$1')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+
+function AmitMonogram({ size = 36 }: { size?: number }) {
+  return (
+    <div
+      className="flex-shrink-0 rounded-full flex items-center justify-center font-display font-black text-white shadow-md"
+      style={{
+        width: size,
+        height: size,
+        background: 'linear-gradient(135deg, #0a0a0a 0%, #2b2b2b 60%, #e63946 140%)',
+        fontSize: size * 0.38,
+        letterSpacing: '-0.02em',
+      }}
+    >
+      AK
+    </div>
+  )
+}
+
+function PlayIcon({ className = 'w-3 h-3' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M8 5v14l11-7z" />
+    </svg>
+  )
+}
+
+function StopIcon({ className = 'w-3 h-3' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M6 6h12v12H6z" />
+    </svg>
+  )
+}
+
+function SpinnerIcon({ className = 'w-3 h-3' }: { className?: string }) {
+  return (
+    <svg className={`${className} animate-spin`} viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" opacity="0.25" />
+      <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function AskAmitWidget() {
+  const [open, setOpen] = useState(false)
+  const [input, setInput] = useState('')
+  const [messages, setMessages] = useState<Msg[]>([])
+  const [streaming, setStreaming] = useState(false)
+  const [playingIdx, setPlayingIdx] = useState<number | null>(null)
+  const [loadingIdx, setLoadingIdx] = useState<number | null>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const currentUrlRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({
+      top: scrollRef.current.scrollHeight,
+      behavior: 'smooth',
+    })
+  }, [messages])
+
+  useEffect(() => {
+    if (open && !streaming) inputRef.current?.focus()
+  }, [open, streaming])
+
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause()
+        audioRef.current = null
+      }
+      if (currentUrlRef.current) {
+        URL.revokeObjectURL(currentUrlRef.current)
+        currentUrlRef.current = null
+      }
+    }
+  }, [])
+
+  const stopAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current.currentTime = 0
+      audioRef.current = null
+    }
+    if (currentUrlRef.current) {
+      URL.revokeObjectURL(currentUrlRef.current)
+      currentUrlRef.current = null
+    }
+    setPlayingIdx(null)
+    setLoadingIdx(null)
+  }
+
+  const handleListen = async (idx: number, text: string) => {
+    if (playingIdx === idx) {
+      stopAudio()
+      return
+    }
+    stopAudio()
+    setLoadingIdx(idx)
+
+    try {
+      const res = await fetch('/api/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      })
+      if (!res.ok) throw new Error(`TTS failed (${res.status})`)
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      currentUrlRef.current = url
+
+      const audio = new Audio(url)
+      audioRef.current = audio
+      audio.onended = () => {
+        if (currentUrlRef.current === url) {
+          URL.revokeObjectURL(url)
+          currentUrlRef.current = null
+          audioRef.current = null
+          setPlayingIdx(null)
+        }
+      }
+      audio.onerror = () => {
+        stopAudio()
+      }
+      await audio.play()
+      setLoadingIdx(null)
+      setPlayingIdx(idx)
+    } catch (err) {
+      console.error('Listen error:', err)
+      setLoadingIdx(null)
+      setPlayingIdx(null)
+    }
+  }
+
+  const handleSend = async () => {
+    if (!input.trim() || streaming) return
+    stopAudio()
+    const userMsg: Msg = { role: 'user', text: input }
+    const history = [...messages, userMsg]
+    setMessages([...history, { role: 'ai', text: '' }])
+    setInput('')
+    setStreaming(true)
+
+    try {
+      const res = await fetch('/api/rag', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: history.map((m) => ({
+            role: m.role === 'ai' ? 'assistant' : 'user',
+            content: m.text,
+          })),
+        }),
+      })
+
+      if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`)
+
+      const reader = res.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n\n')
+        buffer = lines.pop() || ''
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue
+          try {
+            const evt = JSON.parse(line.slice(6))
+            if (evt.type === 'text') {
+              setMessages((prev) => {
+                const lastIdx = prev.length - 1
+                const last = prev[lastIdx]
+                if (last?.role !== 'ai') return prev
+                const next = prev.slice(0, lastIdx)
+                next.push({ ...last, text: last.text + evt.text })
+                return next
+              })
+            } else if (evt.type === 'sources') {
+              setMessages((prev) => {
+                const lastIdx = prev.length - 1
+                const last = prev[lastIdx]
+                if (last?.role !== 'ai') return prev
+                const next = prev.slice(0, lastIdx)
+                next.push({ ...last, sources: evt.sources })
+                return next
+              })
+            } else if (evt.type === 'error') {
+              throw new Error(evt.error)
+            }
+          } catch {
+            /* swallow malformed chunk */
+          }
+        }
+      }
+    } catch (err: any) {
+      setMessages((prev) => {
+        const lastIdx = prev.length - 1
+        const last = prev[lastIdx]
+        if (last?.role !== 'ai' || last.text) return prev
+        const next = prev.slice(0, lastIdx)
+        next.push({ ...last, text: `Sorry, something went wrong: ${err.message}` })
+        return next
+      })
+    } finally {
+      setStreaming(false)
+    }
+  }
+
+  const resetChat = () => {
+    if (streaming) return
+    stopAudio()
+    setMessages([])
+    setInput('')
+  }
+
+  return (
+    <div className="fixed bottom-6 left-6 z-50 flex flex-col items-start">
+      {open && (
+        <div className="mb-3 w-[min(480px,calc(100vw-2rem))] bg-white border border-gray-200 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.25)] rounded-3xl rounded-bl-md overflow-hidden flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-300">
+          {/* Header */}
+          <div className="px-5 py-4 border-b border-gray-100 flex items-start gap-3 bg-gradient-to-b from-white to-gray-50/60">
+            <AmitMonogram size={40} />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-0.5">
+                <h3 className="font-display font-black text-[18px] text-[#0a0a0a] tracking-tight leading-none">
+                  Ask Amit
+                </h3>
+                <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+              </div>
+              <p className="text-[11px] text-gray-400 leading-tight">
+                Dr. Amit Kapoor's digital twin · grounded in his books
+              </p>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {messages.length > 0 && (
+                <button
+                  onClick={resetChat}
+                  disabled={streaming}
+                  className="text-[10px] tracking-[1.5px] uppercase text-gray-400 hover:text-accent transition-colors disabled:opacity-40 font-semibold"
+                >
+                  New
+                </button>
+              )}
+              <button
+                onClick={() => {
+                  stopAudio()
+                  setOpen(false)
+                }}
+                className="w-7 h-7 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 text-xl leading-none transition-all"
+                aria-label="Close"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+
+          {/* Body */}
+          <div
+            ref={scrollRef}
+            className="px-5 py-5 h-[460px] overflow-y-auto flex flex-col gap-5 bg-white"
+          >
+            {messages.length === 0 ? (
+              <div className="flex flex-col gap-4 my-auto">
+                <div className="text-center">
+                  <p className="font-display text-[15px] text-[#0a0a0a] leading-snug mb-1">
+                    What would you like to ask?
+                  </p>
+                  <p className="text-[11px] text-gray-400 leading-relaxed">
+                    Competitiveness, social progress, India's economic story.
+                  </p>
+                </div>
+                <div className="flex flex-col gap-2 mt-1">
+                  {suggestedQuestions.map((q, i) => (
+                    <button
+                      key={i}
+                      onClick={() => {
+                        setInput(q)
+                        inputRef.current?.focus()
+                      }}
+                      className="text-left text-[13px] text-gray-700 bg-gray-50 px-4 py-3 rounded-xl hover:bg-red-50 hover:text-accent transition-all duration-150 border border-gray-100 hover:border-accent/30 hover:shadow-sm leading-snug"
+                    >
+                      {q}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              messages.map((msg, i) => {
+                const isLastAi = i === messages.length - 1 && msg.role === 'ai'
+                const displayText =
+                  msg.role === 'ai' ? stripInlineCitations(msg.text) : msg.text
+                const uniqueTitles = msg.sources
+                  ? Array.from(new Set(msg.sources.map((s) => s.title)))
+                  : []
+                const canListen = msg.role === 'ai' && !streaming && displayText.length > 10
+
+                return (
+                  <div key={i} className={`flex flex-col gap-2 ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+                    {msg.role === 'ai' && (
+                      <div className="flex items-center gap-2">
+                        <AmitMonogram size={22} />
+                        <span className="text-[10px] tracking-[1.5px] uppercase text-gray-400 font-semibold">
+                          Amit
+                        </span>
+                      </div>
+                    )}
+                    <div
+                      className={`text-[14px] px-4 py-3 rounded-2xl leading-[1.6] whitespace-pre-wrap ${
+                        msg.role === 'user'
+                          ? 'bg-accent text-white max-w-[85%] rounded-br-md shadow-sm'
+                          : 'bg-gray-50 text-gray-800 max-w-[92%] rounded-tl-md border border-gray-100'
+                      }`}
+                    >
+                      {displayText}
+                      {isLastAi && streaming && (
+                        <span className="inline-flex gap-1 ml-1 align-baseline">
+                          <span
+                            className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"
+                            style={{ animationDelay: '0ms' }}
+                          />
+                          <span
+                            className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"
+                            style={{ animationDelay: '150ms' }}
+                          />
+                          <span
+                            className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"
+                            style={{ animationDelay: '300ms' }}
+                          />
+                        </span>
+                      )}
+                    </div>
+                    {canListen && (
+                      <div className="flex items-center gap-3 pt-1">
+                        <button
+                          onClick={() => handleListen(i, displayText)}
+                          disabled={loadingIdx === i}
+                          className={`flex items-center gap-1.5 text-[10px] tracking-[1.5px] uppercase font-semibold px-3 py-1.5 rounded-full border transition-all ${
+                            playingIdx === i
+                              ? 'bg-accent text-white border-accent'
+                              : 'bg-white text-gray-600 border-gray-200 hover:border-accent hover:text-accent'
+                          } disabled:opacity-60`}
+                        >
+                          {loadingIdx === i ? (
+                            <>
+                              <SpinnerIcon />
+                              <span>Loading</span>
+                            </>
+                          ) : playingIdx === i ? (
+                            <>
+                              <StopIcon />
+                              <span>Stop</span>
+                            </>
+                          ) : (
+                            <>
+                              <PlayIcon />
+                              <span>Listen</span>
+                            </>
+                          )}
+                        </button>
+                        {uniqueTitles.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 items-center">
+                            <span className="text-[9px] text-gray-400 tracking-[1.5px] uppercase font-semibold">
+                              From
+                            </span>
+                            {uniqueTitles.map((t, j) => (
+                              <span
+                                key={j}
+                                className="text-[10px] text-gray-600 bg-gray-50 border border-gray-200 px-2 py-0.5 rounded-full"
+                              >
+                                {t}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )
+              })
+            )}
+          </div>
+
+          {/* Input */}
+          <div className="px-5 py-4 flex gap-2 border-t border-gray-100 bg-gradient-to-b from-gray-50/30 to-gray-50/60">
+            <input
+              ref={inputRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+              placeholder={streaming ? 'Amit is thinking...' : 'Ask a question...'}
+              disabled={streaming}
+              className="flex-1 text-[13px] border border-gray-200 px-4 py-3 rounded-xl focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/10 transition-all placeholder:text-gray-400 disabled:bg-gray-100 bg-white"
+            />
+            <button
+              onClick={handleSend}
+              disabled={streaming || !input.trim()}
+              className="bg-accent text-white px-4 py-3 rounded-xl hover:bg-[#0a0a0a] transition-all font-bold disabled:opacity-40 disabled:cursor-not-allowed shadow-sm hover:shadow-md flex items-center justify-center"
+              aria-label="Send"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M2 21l21-9L2 3v7l15 2-15 2v7z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
+      <button
+        onClick={() => setOpen(!open)}
+        className={`flex items-center gap-2 text-[11px] tracking-[1.5px] uppercase px-5 py-3 shadow-xl transition-all duration-200 rounded-full font-semibold ${
+          open
+            ? 'bg-accent text-white scale-95'
+            : 'bg-white border border-accent text-accent hover:bg-accent hover:text-white hover:scale-105'
+        }`}
+      >
+        <AmitMonogram size={20} />
+        <span>Ask Amit</span>
+      </button>
+    </div>
+  )
+}
+
+function ExploreWidget() {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+      {open && (
+        <div className="mb-3 w-72 bg-[#0f172a] border border-accent/20 shadow-2xl rounded-2xl rounded-br-none overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
+          <div className="px-4 py-3 border-b border-white/5 flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+              <span className="text-[11px] font-bold tracking-[2px] text-accent uppercase">
+                Explore Ideas
+              </span>
+            </div>
+            <button
+              onClick={() => setOpen(false)}
+              className="text-gray-600 hover:text-gray-300 text-xl leading-none transition-colors"
+            >
+              ×
+            </button>
+          </div>
+          <div className="p-4">
+            <p className="text-[11px] text-gray-500 mb-4 leading-relaxed">
+              Deep-dive topics from Amit's research and writing.
+            </p>
+            <div className="flex flex-col gap-2">
+              {exploreTopics.map((topic, i) => (
+                <button
+                  key={i}
+                  className="text-left text-[11px] text-gray-400 border border-white/5 px-3 py-2.5 rounded-lg hover:border-accent/50 hover:text-accent transition-all duration-150 flex justify-between items-center group"
+                >
+                  {topic}
+                  <span className="opacity-0 group-hover:opacity-100 transition-opacity text-accent">
+                    →
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <button
+        onClick={() => setOpen(!open)}
+        className={`flex items-center gap-2 text-[11px] tracking-[1.5px] uppercase px-4 py-3 shadow-lg transition-all duration-200 rounded-full font-semibold ${
+          open
+            ? 'bg-accent text-white border border-accent'
+            : 'bg-[#0f172a] border border-accent text-accent hover:bg-accent hover:text-white'
+        }`}
+      >
+        💬 Chat Now
+      </button>
+    </div>
+  )
+}
+
+export default function VoiceWidget() {
+  return (
+    <>
+      <AskAmitWidget />
+      <ExploreWidget />
+    </>
+  )
+}

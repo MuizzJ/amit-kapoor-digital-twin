@@ -1,0 +1,56 @@
+import { ElevenLabsClient } from '@elevenlabs/elevenlabs-js'
+
+export const runtime = 'nodejs'
+export const maxDuration = 30
+
+const DEFAULT_VOICE = process.env.ELEVENLABS_VOICE_ID || 'TvgKRDHpNi1aqml8qok6'
+const MODEL_ID = 'eleven_turbo_v2_5'
+const MAX_CHARS = 1200
+
+export async function POST(req: Request) {
+  try {
+    const { text } = await req.json()
+    if (!text || typeof text !== 'string') {
+      return new Response('text required', { status: 400 })
+    }
+
+    const trimmed = text.slice(0, MAX_CHARS).trim()
+    if (!trimmed) return new Response('empty text', { status: 400 })
+
+    const client = new ElevenLabsClient({ apiKey: process.env.ELEVENLABS_API_KEY! })
+
+    const audioStream = await client.textToSpeech.stream(DEFAULT_VOICE, {
+      text: trimmed,
+      modelId: MODEL_ID,
+      outputFormat: 'mp3_44100_128',
+    })
+
+    const reader = (audioStream as any).getReader
+      ? (audioStream as any).getReader()
+      : null
+
+    const webStream = reader
+      ? new ReadableStream({
+          async pull(controller) {
+            const { done, value } = await reader.read()
+            if (done) controller.close()
+            else controller.enqueue(value)
+          },
+        })
+      : (audioStream as any)
+
+    return new Response(webStream, {
+      headers: {
+        'Content-Type': 'audio/mpeg',
+        'Cache-Control': 'no-store',
+        'Access-Control-Allow-Origin': '*',
+      },
+    })
+  } catch (err: any) {
+    console.error('TTS error:', err)
+    return new Response(JSON.stringify({ error: err.message }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }
+}

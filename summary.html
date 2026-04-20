@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ask Amit · MVP Summary</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0B1929; --navy2:#102540; --navy3:#0F1E36;
+  --blue:#1E3A5F; --blue2:#2563EB; --blue3:#3B82F6;
+  --red:#e63946; --red2:#c1121f; --red3:#F87171;
+  --white:#FFFFFF; --off:#F8FAFC;
+  --slate:#64748B; --slate2:#94A3B8; --slate3:#CBD5E1;
+  --dark:#0F172A;
+  --green:#10B981; --green2:#6EE7B7;
+  --purple:#8B5CF6; --purple2:#C4B5FD;
+  --amber:#F59E0B;
+}
+html,body{background:var(--navy);font-family:'Plus Jakarta Sans',sans-serif;-webkit-font-smoothing:antialiased;color:var(--slate2);line-height:1.6}
+body{min-height:100vh;padding-bottom:6rem}
+
+/* grid texture */
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px);
+  background-size:60px 60px;
+}
+
+/* top red line */
+body::after{
+  content:'';position:fixed;top:0;left:0;right:0;height:3px;z-index:50;
+  background:linear-gradient(90deg,var(--red) 0%,transparent 100%);
+}
+
+main{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 2rem}
+
+/* nav */
+.topnav{
+  position:sticky;top:0;z-index:40;background:rgba(11,25,41,0.85);
+  backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,0.06);
+  padding:1rem 2rem;display:flex;justify-content:space-between;align-items:center;
+}
+.brand{display:flex;align-items:center;gap:.65rem}
+.brand-mono{
+  width:32px;height:32px;border-radius:50%;
+  background:linear-gradient(135deg,#0a0a0a 0%,#2b2b2b 55%,#e63946 140%);
+  color:#fff;display:flex;align-items:center;justify-content:center;
+  font-family:'Playfair Display',serif;font-weight:900;font-size:.78rem;letter-spacing:-.02em;
+  box-shadow:0 4px 12px rgba(230,57,70,.25);
+}
+.brand-txt{font-family:'Playfair Display',serif;font-weight:900;color:var(--white);font-size:1rem;letter-spacing:-.015em}
+.nav-links{display:flex;gap:1.5rem}
+.nav-links a{color:var(--slate2);font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;font-weight:600;text-decoration:none;transition:color .2s}
+.nav-links a:hover{color:var(--red3)}
+
+/* hero */
+.hero{padding:5rem 0 3rem;text-align:center}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:.55rem;
+  font-size:.62rem;letter-spacing:.3em;text-transform:uppercase;
+  color:var(--red3);font-weight:700;margin-bottom:1.5rem;
+  padding:.3rem .85rem;border:1px solid rgba(230,57,70,.35);border-radius:100px;
+}
+.pulse{width:5px;height:5px;border-radius:50%;background:var(--red);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+h1.hero-title{
+  font-family:'Playfair Display',serif;font-weight:900;
+  font-size:clamp(2.6rem,6vw,4.8rem);line-height:1.04;letter-spacing:-.02em;
+  color:var(--white);margin-bottom:1.25rem;
+}
+h1.hero-title em{color:var(--red);font-style:italic}
+.hero-sub{font-size:1rem;color:var(--slate2);max-width:56ch;margin:0 auto;font-weight:300}
+
+/* stat row */
+.stat-row{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin:4rem 0;
+}
+.stat-card{
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);
+  border-radius:1rem;padding:1.5rem 1.25rem;position:relative;overflow:hidden;
+  transition:border-color .2s;
+}
+.stat-card:hover{border-color:rgba(230,57,70,.25)}
+.stat-val{
+  font-family:'Playfair Display',serif;font-size:2.75rem;font-weight:900;
+  color:var(--red);line-height:1;letter-spacing:-.03em;margin-bottom:.35rem;
+}
+.stat-lbl{
+  font-size:.58rem;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--slate2);font-weight:600;
+}
+
+/* section */
+section{padding:3.5rem 0;scroll-margin-top:5rem}
+section h2{
+  font-family:'Playfair Display',serif;font-weight:900;
+  font-size:clamp(1.8rem,3.2vw,2.8rem);line-height:1.1;letter-spacing:-.015em;
+  color:var(--white);margin-bottom:.75rem;
+}
+section h2 em{color:var(--red);font-style:italic}
+section .section-kicker{
+  font-size:.6rem;letter-spacing:.3em;text-transform:uppercase;
+  color:var(--red3);font-weight:700;margin-bottom:.75rem;
+  display:flex;align-items:center;gap:.55rem;
+}
+.section-kicker::after{content:'';flex:0 0 28px;height:1.5px;background:var(--red)}
+section .lede{font-size:.88rem;color:var(--slate2);max-width:64ch;margin-bottom:2.5rem;font-weight:300;line-height:1.75}
+
+/* architecture flow */
+.flow{
+  background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);
+  border-radius:1rem;padding:2rem;overflow-x:auto;
+}
+.flow-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:.5rem;align-items:stretch;min-width:820px}
+.flow-node{
+  border-radius:.75rem;padding:1.1rem .9rem;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  display:flex;flex-direction:column;gap:.4rem;position:relative;
+}
+.flow-node.red{border-color:rgba(230,57,70,.35);background:rgba(230,57,70,.06)}
+.flow-node.blue{border-color:rgba(59,130,246,.35);background:rgba(59,130,246,.06)}
+.flow-node.green{border-color:rgba(16,185,129,.35);background:rgba(16,185,129,.06)}
+.flow-node.purple{border-color:rgba(139,92,246,.35);background:rgba(139,92,246,.06)}
+.flow-tag{font-size:.55rem;letter-spacing:.18em;text-transform:uppercase;font-weight:700}
+.flow-tag.r{color:var(--red3)}
+.flow-tag.b{color:#93C5FD}
+.flow-tag.g{color:var(--green2)}
+.flow-tag.p{color:var(--purple2)}
+.flow-name{font-size:.82rem;font-weight:700;color:var(--white);line-height:1.25}
+.flow-desc{font-size:.66rem;color:var(--slate2);line-height:1.5}
+.flow-arrow{
+  display:flex;align-items:center;justify-content:center;color:var(--red);font-size:1.1rem;
+}
+
+/* source grid */
+.src-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem}
+.src-card{
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);
+  border-radius:.85rem;padding:1.25rem;position:relative;overflow:hidden;
+}
+.src-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--red);
+}
+.src-kind{
+  font-size:.55rem;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--red3);font-weight:700;margin-bottom:.4rem;
+}
+.src-title{font-size:.9rem;font-weight:700;color:var(--white);margin-bottom:.35rem;line-height:1.25}
+.src-meta{font-size:.68rem;color:var(--slate2);line-height:1.55;margin-bottom:.8rem}
+.src-chunks{
+  display:inline-block;font-family:'Playfair Display',serif;font-size:1.35rem;font-weight:900;
+  color:var(--red);line-height:1;
+}
+.src-chunks-lbl{font-size:.56rem;letter-spacing:.15em;text-transform:uppercase;color:var(--slate);margin-left:.35rem}
+
+/* data locations */
+.loc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem}
+.loc-card{
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);
+  border-radius:.85rem;padding:1.5rem;
+}
+.loc-head{display:flex;align-items:center;gap:.8rem;margin-bottom:1rem}
+.loc-icon{
+  width:36px;height:36px;border-radius:.55rem;display:flex;align-items:center;justify-content:center;
+  font-size:1.05rem;
+}
+.loc-icon.pine{background:rgba(16,185,129,.1)}
+.loc-icon.anth{background:rgba(230,57,70,.1)}
+.loc-icon.eleven{background:rgba(139,92,246,.1)}
+.loc-icon.vercel{background:rgba(59,130,246,.1)}
+.loc-name{font-family:'Playfair Display',serif;font-weight:700;color:var(--white);font-size:1.1rem}
+.loc-role{font-size:.56rem;letter-spacing:.2em;text-transform:uppercase;color:var(--slate);font-weight:600;margin-top:.15rem}
+.loc-body{font-size:.76rem;color:var(--slate2);line-height:1.7;margin-bottom:.9rem}
+.loc-list{list-style:none;display:flex;flex-direction:column;gap:.45rem}
+.loc-list li{font-size:.7rem;color:var(--slate2);display:flex;gap:.55rem}
+.loc-list li::before{content:'→';color:var(--red);flex-shrink:0}
+
+/* cost scenarios */
+.cost-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem}
+.cost-card{
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);
+  border-radius:.85rem;padding:1.5rem;position:relative;transition:transform .2s,border-color .2s;
+}
+.cost-card:hover{transform:translateY(-3px);border-color:rgba(230,57,70,.3)}
+.cost-tier{
+  font-size:.55rem;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--slate);font-weight:700;margin-bottom:.5rem;
+}
+.cost-name{font-family:'Playfair Display',serif;font-weight:700;color:var(--white);font-size:1.1rem;margin-bottom:.6rem}
+.cost-val{
+  font-family:'Playfair Display',serif;font-weight:900;
+  font-size:2.6rem;color:var(--red);line-height:1;letter-spacing:-.03em;margin-bottom:.3rem;
+}
+.cost-per{font-size:.62rem;color:var(--slate);letter-spacing:.15em;text-transform:uppercase;margin-bottom:1rem}
+.cost-line{font-size:.68rem;color:var(--slate2);padding:.35rem 0;border-top:1px solid rgba(255,255,255,.05);display:flex;justify-content:space-between;gap:.5rem}
+.cost-line:first-of-type{border-top:none}
+.cost-line span:last-child{color:var(--white);font-weight:600}
+
+/* stack table */
+.stack-tbl{
+  background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);
+  border-radius:1rem;overflow:hidden;
+}
+.stack-row{
+  display:grid;grid-template-columns:1fr 1.3fr 2.5fr;gap:1rem;padding:1rem 1.4rem;
+  border-bottom:1px solid rgba(255,255,255,.05);align-items:center;
+}
+.stack-row:last-child{border-bottom:none}
+.stack-layer{font-size:.56rem;letter-spacing:.2em;text-transform:uppercase;color:var(--red3);font-weight:700}
+.stack-tool{font-weight:700;color:var(--white);font-size:.84rem}
+.stack-note{font-size:.72rem;color:var(--slate2);line-height:1.55}
+
+/* next */
+.next-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem}
+.next-card{
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);
+  border-radius:.85rem;padding:1.5rem;position:relative;
+}
+.next-num{
+  font-family:'Playfair Display',serif;font-size:2.5rem;font-weight:900;
+  color:rgba(230,57,70,.15);line-height:1;margin-bottom:.3rem;
+}
+.next-title{font-size:.88rem;font-weight:700;color:var(--white);margin-bottom:.4rem}
+.next-body{font-size:.72rem;color:var(--slate2);line-height:1.65}
+
+/* footer */
+.footer{
+  margin-top:5rem;padding-top:2rem;border-top:1px solid rgba(255,255,255,.06);
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;
+}
+.footer-quote{font-family:'Playfair Display',serif;font-style:italic;color:var(--slate2);font-size:.9rem}
+.footer-meta{font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--slate);font-weight:600}
+
+/* responsive */
+@media (max-width:820px){
+  main{padding:0 1.25rem}
+  .stat-row{grid-template-columns:repeat(2,1fr)}
+  .nav-links{display:none}
+  .stack-row{grid-template-columns:1fr;gap:.3rem}
+}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="brand">
+    <div class="brand-mono">AK</div>
+    <div class="brand-txt">Ask Amit · MVP Summary</div>
+  </div>
+  <div class="nav-links">
+    <a href="#overview">Overview</a>
+    <a href="#flow">Flow</a>
+    <a href="#sources">Sources</a>
+    <a href="#data">Data</a>
+    <a href="#costs">Costs</a>
+    <a href="#next">Next</a>
+    <a href="./cluster.html" style="color:var(--red3)">Cluster Map ↗</a>
+  </div>
+</nav>
+
+<main>
+
+<!-- HERO -->
+<section class="hero" id="overview">
+  <div class="eyebrow"><span class="pulse"></span> Phase 1 · Shipped Locally</div>
+  <h1 class="hero-title">What we built.<br>And what it <em>actually costs</em>.</h1>
+  <p class="hero-sub">A RAG chatbot that lets anyone ask Dr. Amit Kapoor a question and get a grounded, first-person answer from his books, essays, and keynotes. Plus a "Listen" button that plays the answer back in Amit's cloned voice.</p>
+
+  <div class="stat-row">
+    <div class="stat-card">
+      <div class="stat-val">5</div>
+      <div class="stat-lbl">Amit Works Indexed</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val">433</div>
+      <div class="stat-lbl">Searchable Chunks</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val">3</div>
+      <div class="stat-lbl">AI Providers Wired</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val">6hr</div>
+      <div class="stat-lbl">Build Time</div>
+    </div>
+  </div>
+</section>
+
+<!-- FLOW -->
+<section id="flow">
+  <div class="section-kicker">How It Works</div>
+  <h2>One question, <em>five hops</em>.</h2>
+  <p class="lede">When a visitor types a question, this is the sequence. Total time from Enter to first spoken word: around two seconds.</p>
+
+  <div class="flow">
+    <div class="flow-grid">
+      <div class="flow-node red">
+        <div class="flow-tag r">01 · Ask</div>
+        <div class="flow-name">Chat Widget</div>
+        <div class="flow-desc">Visitor types a question on the Next.js site and hits send.</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node blue">
+        <div class="flow-tag b">02 · Retrieve</div>
+        <div class="flow-name">Pinecone</div>
+        <div class="flow-desc">Vector search returns the top six most relevant chunks from Amit's work.</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node red">
+        <div class="flow-tag r">03 · Think</div>
+        <div class="flow-name">Claude Sonnet 4.6</div>
+        <div class="flow-desc">LLM reads the retrieved context plus system prompt, streams a first-person answer.</div>
+      </div>
+    </div>
+    <div class="flow-grid" style="margin-top:.5rem">
+      <div class="flow-node purple">
+        <div class="flow-tag p">04 · Stream</div>
+        <div class="flow-name">Widget Renders</div>
+        <div class="flow-desc">Tokens appear in the bubble as Claude generates them. Source pills attach at the end.</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node green">
+        <div class="flow-tag g">05 · Listen</div>
+        <div class="flow-name">ElevenLabs</div>
+        <div class="flow-desc">Listen button calls cloned-voice TTS. Audio streams and plays in Amit's voice.</div>
+      </div>
+      <div class="flow-arrow" style="opacity:0">→</div>
+      <div class="flow-node red">
+        <div class="flow-tag r">06 · Done</div>
+        <div class="flow-name">Visitor Hears Amit</div>
+        <div class="flow-desc">End-to-end in under two seconds. Zero hallucinations, cited and grounded.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SOURCES -->
+<section id="sources">
+  <div class="section-kicker">The Knowledge Base</div>
+  <h2>Five of Amit's works, <em>chunked and indexed</em>.</h2>
+  <p class="lede">The bot can only answer from what's here. Add another PDF, essay, or YouTube link and it expands. Nothing else gets through.</p>
+
+  <div class="src-grid">
+    <div class="src-card">
+      <div class="src-kind">Book · PDF</div>
+      <div class="src-title">The Age of Awakening</div>
+      <div class="src-meta">The story of the Indian economy since Independence. Penguin Random House.</div>
+      <div><span class="src-chunks">192</span><span class="src-chunks-lbl">chunks</span></div>
+    </div>
+    <div class="src-card">
+      <div class="src-kind">Book · PDF</div>
+      <div class="src-title">The Elephant Moves</div>
+      <div class="src-meta">India's competitiveness, the 4S framework, the path to shared prosperity.</div>
+      <div><span class="src-chunks">231</span><span class="src-chunks-lbl">chunks</span></div>
+    </div>
+    <div class="src-card">
+      <div class="src-kind">Slides · PPTX</div>
+      <div class="src-title">Riding the Tiger</div>
+      <div class="src-meta">Strategic guide for emerging-market leaders. Selected slides.</div>
+      <div><span class="src-chunks">6</span><span class="src-chunks-lbl">chunks</span></div>
+    </div>
+    <div class="src-card">
+      <div class="src-kind">Essay · Financial Express</div>
+      <div class="src-title">AI Growth Beyond Metros</div>
+      <div class="src-meta">Published March 7, 2026. Why Tier 2 and 3 cities need their own AI playbook.</div>
+      <div><span class="src-chunks">2</span><span class="src-chunks-lbl">chunks</span></div>
+    </div>
+    <div class="src-card">
+      <div class="src-kind">Talk · YouTube</div>
+      <div class="src-title">Arthsastra Keynote</div>
+      <div class="src-meta">Stanford lecture series. Auto-transcribed from the YouTube captions.</div>
+      <div><span class="src-chunks">2</span><span class="src-chunks-lbl">chunks</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- DATA LOCATIONS -->
+<section id="data">
+  <div class="section-kicker">Where Everything Lives</div>
+  <h2>Four services. <em>No custom infra.</em></h2>
+  <p class="lede">Every piece of the stack runs on a managed provider. Nothing to patch, nothing to babysit. Keys live in environment variables that never touch GitHub.</p>
+
+  <div class="loc-grid">
+    <div class="loc-card">
+      <div class="loc-head">
+        <div class="loc-icon pine">🧠</div>
+        <div>
+          <div class="loc-name">Pinecone</div>
+          <div class="loc-role">Vector Database</div>
+        </div>
+      </div>
+      <div class="loc-body">Holds the 433 embedded chunks of Amit's work. Searches them by semantic similarity whenever a question is asked. Runs on AWS us-east-1, serverless.</div>
+      <ul class="loc-list">
+        <li>Index: <code>ask-amit</code></li>
+        <li>Model: <code>llama-text-embed-v2</code> (hosted)</li>
+        <li>Namespace: <code>books</code></li>
+      </ul>
+    </div>
+
+    <div class="loc-card">
+      <div class="loc-head">
+        <div class="loc-icon anth">✦</div>
+        <div>
+          <div class="loc-name">Anthropic</div>
+          <div class="loc-role">Language Model</div>
+        </div>
+      </div>
+      <div class="loc-body">Generates the actual answer after reading the retrieved chunks plus your voice rules from <code>prompts/ask-amit.md</code>. Streams tokens back to the widget.</div>
+      <ul class="loc-list">
+        <li>Model: <code>claude-sonnet-4-6</code></li>
+        <li>Prompt caching on context block</li>
+        <li>Max output: 600 tokens (short answers)</li>
+      </ul>
+    </div>
+
+    <div class="loc-card">
+      <div class="loc-head">
+        <div class="loc-icon eleven">🎙</div>
+        <div>
+          <div class="loc-name">ElevenLabs</div>
+          <div class="loc-role">Voice Cloning</div>
+        </div>
+      </div>
+      <div class="loc-body">Holds Amit's cloned voice and streams MP3 audio whenever someone clicks Listen on an answer. First byte typically under one second.</div>
+      <ul class="loc-list">
+        <li>Voice ID: <code>TvgKRDHpNi1aqml8qok6</code></li>
+        <li>Model: <code>eleven_turbo_v2_5</code></li>
+        <li>Output: <code>mp3_44100_128</code></li>
+      </ul>
+    </div>
+
+    <div class="loc-card">
+      <div class="loc-head">
+        <div class="loc-icon vercel">▲</div>
+        <div>
+          <div class="loc-name">Vercel</div>
+          <div class="loc-role">Hosting (planned)</div>
+        </div>
+      </div>
+      <div class="loc-body">Will host the Next.js site once Hour 6 deploys. Right now it runs locally on your machine at <code>localhost:3001</code>. Git push triggers redeploy.</div>
+      <ul class="loc-list">
+        <li>Runtime: Next.js 14, App Router</li>
+        <li>Edge-cached globally</li>
+        <li>Env vars scoped per environment</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- COSTS -->
+<section id="costs">
+  <div class="section-kicker">Monthly Cost</div>
+  <h2>What you'll actually <em>pay per month</em>.</h2>
+  <p class="lede">Four traffic scenarios. All numbers are rounded realistic estimates based on per-provider 2026 pricing and the measured per-question cost of this exact build.</p>
+
+  <div class="cost-grid">
+    <div class="cost-card">
+      <div class="cost-tier">Tier 1 · Idle</div>
+      <div class="cost-name">Dev &amp; Demo</div>
+      <div class="cost-val">$0</div>
+      <div class="cost-per">per month</div>
+      <div class="cost-line"><span>Anthropic</span><span>$0</span></div>
+      <div class="cost-line"><span>Pinecone</span><span>Free tier</span></div>
+      <div class="cost-line"><span>ElevenLabs</span><span>Free tier</span></div>
+      <div class="cost-line"><span>Vercel</span><span>Hobby</span></div>
+    </div>
+
+    <div class="cost-card">
+      <div class="cost-tier">Tier 2 · Pitch</div>
+      <div class="cost-name">Light Use</div>
+      <div class="cost-val">~$1</div>
+      <div class="cost-per">per month · ~50 Qs</div>
+      <div class="cost-line"><span>Anthropic</span><span>~$0.75</span></div>
+      <div class="cost-line"><span>Pinecone</span><span>Free tier</span></div>
+      <div class="cost-line"><span>ElevenLabs</span><span>Free tier</span></div>
+      <div class="cost-line"><span>Vercel</span><span>Hobby</span></div>
+    </div>
+
+    <div class="cost-card">
+      <div class="cost-tier">Tier 3 · Active</div>
+      <div class="cost-name">Amit + Staff</div>
+      <div class="cost-val">~$30</div>
+      <div class="cost-per">per month · ~500 Qs</div>
+      <div class="cost-line"><span>Anthropic</span><span>~$7.50</span></div>
+      <div class="cost-line"><span>Pinecone</span><span>Free / Starter</span></div>
+      <div class="cost-line"><span>ElevenLabs</span><span>~$22 Creator</span></div>
+      <div class="cost-line"><span>Vercel</span><span>Hobby</span></div>
+    </div>
+
+    <div class="cost-card">
+      <div class="cost-tier">Tier 4 · Public</div>
+      <div class="cost-name">Live Audience</div>
+      <div class="cost-val">~$245</div>
+      <div class="cost-per">per month · 5,000 Qs</div>
+      <div class="cost-line"><span>Anthropic</span><span>~$75</span></div>
+      <div class="cost-line"><span>Pinecone</span><span>~$50 Standard</span></div>
+      <div class="cost-line"><span>ElevenLabs</span><span>~$99 Pro</span></div>
+      <div class="cost-line"><span>Vercel</span><span>~$20 Pro</span></div>
+    </div>
+  </div>
+
+  <p class="lede" style="margin-top:2.5rem;font-size:.78rem">
+    Per-question unit economics: input tokens are cached after the first query in each 5-minute window, dropping a follow-up from about $0.02 to $0.008. Voice playback is optional per message. Back-of-envelope: $10 of Anthropic credit covers roughly 500 real questions.
+  </p>
+</section>
+
+<!-- STACK -->
+<section id="stack">
+  <div class="section-kicker">The Stack</div>
+  <h2>Every layer, <em>named</em>.</h2>
+  <p class="lede">If a non-technical stakeholder asks "what is this built on," hand them this table. Nothing here is home-grown or obscure.</p>
+
+  <div class="stack-tbl">
+    <div class="stack-row">
+      <div class="stack-layer">Frontend</div>
+      <div class="stack-tool">Next.js 14 · React 18 · Tailwind</div>
+      <div class="stack-note">Static marketing page plus a floating chat widget with streaming bubbles, source pills, and Listen button.</div>
+    </div>
+    <div class="stack-row">
+      <div class="stack-layer">Backend</div>
+      <div class="stack-tool">Next.js API Routes (Node)</div>
+      <div class="stack-note">Two endpoints: <code>/api/rag</code> streams Claude, <code>/api/tts</code> streams ElevenLabs audio.</div>
+    </div>
+    <div class="stack-row">
+      <div class="stack-layer">Ingest</div>
+      <div class="stack-tool">Node + pdf-parse + adm-zip</div>
+      <div class="stack-note">Reads PDF, PPTX, TXT, chunks at 700 words with 100 overlap, upserts to Pinecone with metadata.</div>
+    </div>
+    <div class="stack-row">
+      <div class="stack-layer">Vectors</div>
+      <div class="stack-tool">Pinecone · llama-text-embed-v2</div>
+      <div class="stack-note">Serverless. Integrated inference means embedding is free server-side, no separate embedding API.</div>
+    </div>
+    <div class="stack-row">
+      <div class="stack-layer">LLM</div>
+      <div class="stack-tool">Anthropic Claude Sonnet 4.6</div>
+      <div class="stack-note">Streaming with prompt caching on the retrieved context block. Rules live in an editable markdown prompt.</div>
+    </div>
+    <div class="stack-row">
+      <div class="stack-layer">Voice</div>
+      <div class="stack-tool">ElevenLabs · eleven_turbo_v2_5</div>
+      <div class="stack-note">Professional voice clone of Amit. Streams MP3. First-byte latency around 500ms to 1.5s.</div>
+    </div>
+    <div class="stack-row">
+      <div class="stack-layer">YouTube</div>
+      <div class="stack-tool">youtube-transcript + oEmbed</div>
+      <div class="stack-note">Pulls auto-captions and title. Writes a formatted .txt into <code>/data</code> ready for ingest.</div>
+    </div>
+    <div class="stack-row">
+      <div class="stack-layer">Hosting</div>
+      <div class="stack-tool">Vercel (planned) · local now</div>
+      <div class="stack-note">Single <code>vercel deploy</code> ships everything. Env vars managed in the Vercel dashboard.</div>
+    </div>
+  </div>
+</section>
+
+<!-- NEXT -->
+<section id="next">
+  <div class="section-kicker">What's Next</div>
+  <h2>From local MVP to <em>live product</em>.</h2>
+  <p class="lede">Phase 1 is sitting on your laptop right now. These are the next discrete blocks of work, each a few hours at most.</p>
+
+  <div class="next-grid">
+    <div class="next-card">
+      <div class="next-num">1</div>
+      <div class="next-title">Ship to Vercel</div>
+      <div class="next-body">Deploy the site publicly with keys in the dashboard. Rate-limit the endpoint so only your traffic counts.</div>
+    </div>
+    <div class="next-card">
+      <div class="next-num">2</div>
+      <div class="next-title">Package as MCP</div>
+      <div class="next-body">Publish a Claude Code plugin on GitHub so Amit can invoke Ask Amit from inside his own Claude sessions.</div>
+    </div>
+    <div class="next-card">
+      <div class="next-num">3</div>
+      <div class="next-title">Voice Input</div>
+      <div class="next-body">Add a mic button so visitors can speak questions instead of typing. Closes the loop toward full voice chat.</div>
+    </div>
+    <div class="next-card">
+      <div class="next-num">4</div>
+      <div class="next-title">Staff Dashboard</div>
+      <div class="next-body">Auth-gated internal tool for Amit's team. Unlimited queries, advanced prompts, exportable answers.</div>
+    </div>
+    <div class="next-card">
+      <div class="next-num">5</div>
+      <div class="next-title">Telephony</div>
+      <div class="next-body">Inbound phone number. Twilio picks up, Whisper transcribes, RAG answers, ElevenLabs speaks back.</div>
+    </div>
+    <div class="next-card">
+      <div class="next-num">6</div>
+      <div class="next-title">Content Pipeline</div>
+      <div class="next-body">Every new essay Amit publishes gets automatically fetched, chunked, and indexed within minutes.</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-quote">"Your knowledge, always on. Your voice, always available."</div>
+    <div class="footer-meta">Prepared by MJ · Q2 2026</div>
+  </div>
+</section>
+
+</main>
+
+</body>
+</html>

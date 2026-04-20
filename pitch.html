@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The "Ask Amit" Digital Transformation</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --navy:    #0B1929;
+  --navy2:   #102540;
+  --blue:    #1E3A5F;
+  --blue2:   #2563EB;
+  --blue3:   #3B82F6;
+  --sky:     #EFF6FF;
+  --red:     #e63946;
+  --red2:    #c1121f;
+  --white:   #FFFFFF;
+  --off:     #F8FAFC;
+  --slate:   #64748B;
+  --slate2:  #94A3B8;
+  --slate3:  #CBD5E1;
+  --dark:    #0F172A;
+}
+
+html, body {
+  height: 100%; overflow: hidden;
+  background: var(--navy);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── DECK ─── */
+.deck { width: 100vw; height: 100vh; position: relative; }
+
+.slide {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  padding: 4.5rem 6rem;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.55s cubic-bezier(.4,0,.2,1),
+              transform 0.55s cubic-bezier(.4,0,.2,1);
+  transform: translateX(40px);
+  overflow: hidden;
+}
+.slide.active  { opacity: 1; pointer-events: all; transform: translateX(0); }
+.slide.prev    { transform: translateX(-40px); opacity: 0; }
+
+/* backgrounds */
+.dark-slide  { background: var(--navy); }
+.white-slide { background: var(--white); }
+.off-slide   { background: var(--off); }
+.blue-slide  { background: var(--blue); }
+.red-slide   { background: var(--red); }
+
+/* ─── SUBTLE GRID TEXTURE on dark slides ─── */
+.dark-slide::after, .blue-slide::after {
+  content: '';
+  position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+.slide > * { position: relative; z-index: 1; }
+
+/* ─── RED ACCENT LINE at top of every slide ─── */
+.slide::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--red) 0%, transparent 100%);
+  z-index: 10;
+}
+
+/* ─── SHARED TYPE ─── */
+.eyebrow {
+  font-size: 0.6rem; font-weight: 700;
+  letter-spacing: 0.3em; text-transform: uppercase;
+  color: var(--red); margin-bottom: 1rem;
+  display: flex; align-items: center; gap: 0.6rem;
+}
+.eyebrow::after {
+  content: ''; flex: 0 0 32px; height: 1.5px; background: var(--red);
+}
+
+.h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2.4rem, 5vw, 4rem);
+  font-weight: 900; line-height: 1.05;
+  color: var(--white); letter-spacing: -0.02em;
+}
+.h1 em { color: var(--red); font-style: italic; }
+.h1.dark-text { color: var(--dark); }
+.h1.dark-text em { color: var(--red); }
+
+.h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.6rem, 3vw, 2.6rem);
+  font-weight: 700; line-height: 1.1;
+  color: var(--white); letter-spacing: -0.015em;
+}
+.h2.dark-text { color: var(--dark); }
+
+.body { font-size: 0.82rem; color: var(--slate2); line-height: 1.75; font-weight: 300; }
+.body.dark { color: var(--slate); }
+
+/* ─── NAV ─── */
+.nav {
+  position: fixed; bottom: 1.75rem; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 0.6rem; z-index: 200;
+  background: rgba(11,25,41,0.75); backdrop-filter: blur(12px);
+  padding: 0.55rem 1.1rem; border-radius: 100px;
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+}
+.dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  transition: all 0.3s ease; cursor: pointer;
+}
+.dot.active { background: var(--red); transform: scale(1.5); }
+.nav-btn {
+  background: none; border: none; color: rgba(255,255,255,0.4);
+  cursor: pointer; font-size: 0.8rem; padding: 0.15rem 0.4rem;
+  transition: color 0.2s; line-height: 1;
+}
+.nav-btn:hover { color: var(--white); }
+.progress {
+  position: fixed; top: 0; left: 0; height: 3px;
+  background: var(--red); transition: width 0.4s ease; z-index: 300;
+}
+.counter {
+  position: fixed; top: 1.25rem; right: 2rem; z-index: 200;
+  font-size: 0.6rem; color: rgba(255,255,255,0.25); letter-spacing: 0.15em;
+}
+.slide-label {
+  position: fixed; top: 1.25rem; left: 2rem; z-index: 200;
+  font-size: 0.6rem; color: rgba(255,255,255,0.2); letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+/* ══════════════════════════════════════
+   SLIDE 1 — TITLE
+══════════════════════════════════════ */
+#s1 { justify-content: center; }
+.s1-inner { display: grid; grid-template-columns: 1.2fr 1fr; gap: 5rem; align-items: center; }
+.s1-tag {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  border: 1px solid rgba(230,57,70,0.35); border-radius: 100px;
+  padding: 0.3rem 0.85rem; margin-bottom: 1.75rem;
+  font-size: 0.62rem; color: var(--red); letter-spacing: 0.2em;
+  text-transform: uppercase; font-weight: 600;
+}
+.s1-pulse { width: 5px; height: 5px; border-radius: 50%; background: var(--red); animation: blink 2s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.s1-sub { margin-top: 1.5rem; font-size: 0.9rem; color: var(--slate2); line-height: 1.75; font-weight: 300; max-width: 44ch; }
+.s1-meta { margin-top: 2rem; font-size: 0.62rem; color: rgba(255,255,255,0.2); letter-spacing: 0.2em; text-transform: uppercase; }
+
+.s1-card {
+  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 1rem; padding: 2rem; display: flex; flex-direction: column; gap: 1.1rem;
+}
+.s1-row { display: flex; align-items: center; gap: 1rem; }
+.s1-icon {
+  width: 38px; height: 38px; border-radius: 8px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+}
+.s1-txt { font-size: 0.78rem; color: rgba(255,255,255,0.6); font-weight: 500; line-height: 1.3; }
+.s1-lbl { font-size: 0.58rem; color: var(--slate); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 0.1rem; }
+
+/* ══════════════════════════════════════
+   SLIDE 2 — VISION
+══════════════════════════════════════ */
+#s2 { justify-content: center; }
+.s2-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.25rem; margin-top: 2.5rem; }
+.s2-card {
+  border-radius: 0.75rem; padding: 1.75rem;
+  border: 1px solid var(--slate3);
+  position: relative; overflow: hidden;
+  background: var(--white);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.s2-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: var(--red);
+}
+.s2-num {
+  position: absolute; bottom: -0.5rem; right: 1rem;
+  font-family: 'Playfair Display', serif; font-size: 6rem; font-weight: 900;
+  color: rgba(230,57,70,0.05); line-height: 1; pointer-events: none;
+}
+.s2-icon { font-size: 1.75rem; margin-bottom: 1rem; }
+.s2-title { font-size: 0.95rem; font-weight: 700; color: var(--dark); margin-bottom: 0.5rem; }
+.s2-body { font-size: 0.76rem; color: var(--slate); line-height: 1.7; }
+
+/* ══════════════════════════════════════
+   SLIDE 3 — ECOSYSTEM
+══════════════════════════════════════ */
+#s3 { padding: 2.5rem 4rem; justify-content: center; }
+.s3-head { text-align: center; margin-bottom: 2rem; }
+.eco-wrap { display: flex; align-items: stretch; gap: 0; }
+.eco-col { flex: 1; display: flex; flex-direction: column; gap: 0.6rem; }
+.eco-arr {
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 0.5rem; color: var(--red); font-size: 1rem; flex-shrink: 0;
+  position: relative;
+}
+.eco-arr::after { content: '→'; }
+
+.eco-node {
+  border-radius: 0.6rem; padding: 1rem 1.1rem;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  flex: 1;
+}
+.eco-node.accent { border-color: rgba(230,57,70,0.4); background: rgba(230,57,70,0.06); }
+.eco-node.blue   { border-color: rgba(59,130,246,0.4); background: rgba(59,130,246,0.06); }
+.eco-node.green  { border-color: rgba(16,185,129,0.4); background: rgba(16,185,129,0.06); }
+.eco-node.purple { border-color: rgba(139,92,246,0.4); background: rgba(139,92,246,0.06); }
+
+.en-tag { font-size: 0.55rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 0.3rem; color: var(--slate2); }
+.en-tag.r { color: #F87171; }
+.en-tag.b { color: #93C5FD; }
+.en-tag.g { color: #6EE7B7; }
+.en-tag.p { color: #C4B5FD; }
+.en-name { font-size: 0.75rem; font-weight: 700; color: var(--white); line-height: 1.3; margin-bottom: 0.25rem; }
+.en-desc { font-size: 0.62rem; color: var(--slate2); line-height: 1.45; }
+
+.eco-legend { display: flex; gap: 1rem; justify-content: center; margin-top: 1.25rem; flex-wrap: wrap; }
+.eco-pip {
+  display: flex; align-items: center; gap: 0.4rem;
+  font-size: 0.58rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 0.25rem 0.7rem; border-radius: 100px;
+}
+.pip-r { background: rgba(230,57,70,0.1); color: #F87171; border: 1px solid rgba(230,57,70,0.25); }
+.pip-b { background: rgba(59,130,246,0.1); color: #93C5FD; border: 1px solid rgba(59,130,246,0.25); }
+.pip-g { background: rgba(16,185,129,0.1); color: #6EE7B7; border: 1px solid rgba(16,185,129,0.25); }
+.pip-p { background: rgba(139,92,246,0.1); color: #C4B5FD; border: 1px solid rgba(139,92,246,0.25); }
+
+/* ══════════════════════════════════════
+   SLIDE 4 — DATA BRAIN
+══════════════════════════════════════ */
+#s4 { justify-content: center; }
+.s4-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3.5rem; align-items: start; margin-top: 2rem; }
+.biz-box {
+  background: rgba(230,57,70,0.05); border: 1px solid rgba(230,57,70,0.15);
+  border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 1.25rem;
+}
+.biz-lbl { font-size: 0.58rem; color: var(--red); letter-spacing: 0.2em; text-transform: uppercase; font-weight: 700; margin-bottom: 0.6rem; }
+.biz-txt { font-size: 0.8rem; color: rgba(255,255,255,0.6); line-height: 1.75; font-weight: 300; }
+.biz-txt strong { color: rgba(255,255,255,0.9); font-weight: 600; }
+
+.tech-stack { display: flex; flex-direction: column; gap: 0.85rem; }
+.ts-item { display: flex; gap: 0.9rem; align-items: flex-start; padding-bottom: 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.ts-item:last-child { border-bottom: none; padding-bottom: 0; }
+.ts-bar { width: 2px; background: var(--red); border-radius: 2px; flex-shrink: 0; align-self: stretch; margin-top: 2px; }
+.ts-name { font-size: 0.78rem; font-weight: 700; color: var(--white); margin-bottom: 0.2rem; }
+.ts-desc { font-size: 0.7rem; color: var(--slate2); line-height: 1.55; }
+
+/* ══════════════════════════════════════
+   SLIDE 5 — DASHBOARD
+══════════════════════════════════════ */
+#s5 { justify-content: center; }
+.s5-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.1rem; margin-top: 2rem; }
+.s5-card {
+  background: var(--white); border-radius: 0.75rem; padding: 1.4rem;
+  border: 1px solid var(--slate3);
+  display: flex; gap: 1rem; align-items: flex-start;
+  transition: box-shadow 0.2s;
+}
+.s5-icon-wrap {
+  width: 36px; height: 36px; border-radius: 8px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem;
+  background: rgba(230,57,70,0.08);
+}
+.s5-title { font-size: 0.84rem; font-weight: 700; color: var(--dark); margin-bottom: 0.3rem; }
+.s5-body  { font-size: 0.72rem; color: var(--slate); line-height: 1.65; }
+.s5-stats {
+  margin-top: 1.5rem; display: flex; gap: 0;
+  border: 1px solid var(--slate3); border-radius: 0.75rem; overflow: hidden;
+  background: var(--white);
+}
+.stat-cell {
+  flex: 1; padding: 1.1rem 1.25rem; text-align: center;
+  border-right: 1px solid var(--slate3);
+}
+.stat-cell:last-child { border-right: none; }
+.stat-val { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 900; color: var(--red); }
+.stat-lbl { font-size: 0.6rem; color: var(--slate); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 0.2rem; }
+
+/* ══════════════════════════════════════
+   SLIDE 6 — PHASE 1
+══════════════════════════════════════ */
+#s6 { justify-content: center; }
+.phase-pip {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  border-radius: 100px; padding: 0.28rem 0.85rem; margin-bottom: 1rem;
+  font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 700;
+}
+.p1-pip { background: rgba(59,130,246,0.12); color: #93C5FD; border: 1px solid rgba(59,130,246,0.3); }
+.p2-pip { background: rgba(16,185,129,0.12); color: #6EE7B7; border: 1px solid rgba(16,185,129,0.3); }
+.p-pip-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+.s6-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 3.5rem; align-items: start; margin-top: 1.5rem; }
+.step-list { display: flex; flex-direction: column; gap: 1.2rem; }
+.step { display: flex; gap: 1rem; align-items: flex-start; }
+.step-n {
+  width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+  border: 1.5px solid var(--red); color: var(--red);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.62rem; font-weight: 700; margin-top: 1px;
+}
+.step-title { font-size: 0.82rem; font-weight: 700; color: var(--white); margin-bottom: 0.2rem; }
+.step-desc  { font-size: 0.7rem; color: var(--slate2); line-height: 1.6; }
+
+/* browser mockup */
+.browser {
+  background: #0D1520; border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 0.75rem; overflow: hidden;
+}
+.browser-bar {
+  background: rgba(255,255,255,0.04); padding: 0.55rem 1rem;
+  display: flex; align-items: center; gap: 0.4rem;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.b-dot { width: 7px; height: 7px; border-radius: 50%; }
+.b-url {
+  margin-left: 0.6rem; font-size: 0.58rem;
+  color: rgba(255,255,255,0.2); font-family: monospace;
+}
+.browser-body { padding: 1.1rem; }
+.b-hero { background: rgba(255,255,255,0.03); border-radius: 0.5rem; padding: 0.85rem; margin-bottom: 0.85rem; }
+.b-h { font-size: 0.8rem; font-weight: 700; color: var(--white); margin-bottom: 0.2rem; }
+.b-p { font-size: 0.6rem; color: var(--slate2); }
+.b-input {
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(230,57,70,0.35);
+  border-radius: 0.4rem; padding: 0.5rem 0.8rem;
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 0.7rem;
+}
+.b-ph { font-size: 0.6rem; color: rgba(255,255,255,0.2); font-style: italic; }
+.b-send { font-size: 0.62rem; color: var(--red); font-weight: 700; }
+.b-resp { background: rgba(230,57,70,0.05); border: 1px solid rgba(230,57,70,0.1); border-radius: 0.4rem; padding: 0.6rem 0.8rem; }
+.b-resp-lbl { font-size: 0.55rem; color: var(--red); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.3rem; }
+.b-resp-txt { font-size: 0.62rem; color: rgba(255,255,255,0.45); line-height: 1.55; }
+
+/* ══════════════════════════════════════
+   SLIDE 7 — PHASE 2
+══════════════════════════════════════ */
+#s7 { justify-content: center; background: #060F1A; }
+.s7-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.1rem; margin-top: 1.75rem; }
+.s7-card {
+  border-radius: 0.75rem; padding: 1.5rem;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+}
+.s7-icon { font-size: 1.6rem; margin-bottom: 0.75rem; }
+.s7-title { font-size: 0.85rem; font-weight: 700; color: var(--white); margin-bottom: 0.35rem; }
+.s7-body  { font-size: 0.72rem; color: var(--slate2); line-height: 1.65; }
+.tech-chip {
+  display: inline-block; margin-top: 0.6rem;
+  font-size: 0.56rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 0.18rem 0.6rem; border-radius: 100px;
+  background: rgba(16,185,129,0.08); color: #6EE7B7;
+  border: 1px solid rgba(16,185,129,0.2);
+}
+.flow {
+  margin-top: 1.75rem; padding: 1.1rem 1.5rem;
+  background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 0.75rem; display: flex; align-items: center; gap: 0.5rem;
+  flex-wrap: wrap; justify-content: center;
+}
+.flow-node {
+  font-size: 0.62rem; font-weight: 600;
+  padding: 0.35rem 0.75rem; border-radius: 0.35rem;
+  background: rgba(230,57,70,0.08); color: #FCA5A5;
+  border: 1px solid rgba(230,57,70,0.2);
+}
+.flow-arr { color: rgba(255,255,255,0.15); font-size: 0.75rem; }
+
+/* ══════════════════════════════════════
+   SLIDE 8 — NEXT STEPS
+══════════════════════════════════════ */
+#s8 { justify-content: center; background: var(--navy); }
+.s8-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.25rem; margin-top: 2.5rem; }
+.s8-card {
+  border-radius: 0.75rem; padding: 1.75rem; position: relative; overflow: hidden;
+  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);
+  transition: border-color 0.2s;
+}
+.s8-card:hover { border-color: rgba(230,57,70,0.3); }
+.s8-n {
+  position: absolute; bottom: -1rem; right: 0.75rem;
+  font-family: 'Playfair Display', serif; font-size: 6rem; font-weight: 900;
+  color: rgba(255,255,255,0.02); line-height: 1; pointer-events: none;
+}
+.s8-icon { font-size: 1.5rem; margin-bottom: 0.85rem; }
+.s8-title { font-size: 0.88rem; font-weight: 700; color: var(--white); margin-bottom: 0.4rem; }
+.s8-body  { font-size: 0.72rem; color: var(--slate2); line-height: 1.65; }
+.s8-chip  { display: inline-block; margin-top: 0.75rem; font-size: 0.56rem; font-weight: 700; color: var(--red); letter-spacing: 0.15em; text-transform: uppercase; }
+
+.s8-foot {
+  margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.06);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.s8-quote { font-family: 'Playfair Display', serif; font-size: 0.95rem; color: rgba(255,255,255,0.35); font-style: italic; }
+.s8-by    { font-size: 0.6rem; color: rgba(255,255,255,0.2); letter-spacing: 0.15em; text-transform: uppercase; }
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+<div class="slide-label" id="slide-label">The "Ask Amit" Pitch</div>
+<div class="counter" id="counter">01 / 08</div>
+<div class="deck" id="deck">
+
+<!-- ══ SLIDE 1 ══ -->
+<div class="slide dark-slide active" id="s1">
+  <div class="s1-inner">
+    <div>
+      <div class="s1-tag"><span class="s1-pulse"></span> Q2 2026 · Prepared by MJ</div>
+      <h1 class="h1">The<br><em>"Ask Amit"</em><br>Transformation</h1>
+      <p class="s1-sub">Scaling your knowledge. Preserving your voice. Building a digital twin that works around the clock.</p>
+      <p class="s1-meta">Dr. Amit Kapoor · amitkapoor.com</p>
+    </div>
+    <div class="s1-card">
+      <div class="s1-row">
+        <div class="s1-icon" style="background:rgba(230,57,70,0.1)">📚</div>
+        <div><div class="s1-lbl">Foundation</div><div class="s1-txt">Books, EPUBs & Transcripts → Secure Vector Vault</div></div>
+      </div>
+      <div class="s1-row">
+        <div class="s1-icon" style="background:rgba(59,130,246,0.1)">💬</div>
+        <div><div class="s1-lbl">Phase 1</div><div class="s1-txt">Ask Amit Chatbot on revamped Next.js site</div></div>
+      </div>
+      <div class="s1-row">
+        <div class="s1-icon" style="background:rgba(16,185,129,0.1)">🎙</div>
+        <div><div class="s1-lbl">Phase 2</div><div class="s1-txt">ElevenLabs Voice Clone + Telephony</div></div>
+      </div>
+      <div class="s1-row">
+        <div class="s1-icon" style="background:rgba(139,92,246,0.1)">☁️</div>
+        <div><div class="s1-lbl">Infrastructure</div><div class="s1-txt">Vercel + AWS · Scales to any traffic</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SLIDE 2 ══ -->
+<div class="slide white-slide" id="s2">
+  <div class="eyebrow" style="color:var(--red)">The Vision</div>
+  <h2 class="h1 dark-text">Your Legacy,<br><em>Digitized & Interactive</em></h2>
+  <div class="s2-grid">
+    <div class="s2-card">
+      <div class="s2-num">1</div>
+      <div class="s2-icon">🔐</div>
+      <div class="s2-title">100% Authentic</div>
+      <div class="s2-body">Built strictly on your published work and interviews. The AI only speaks using your actual words — no fabrication, ever.</div>
+    </div>
+    <div class="s2-card">
+      <div class="s2-num">2</div>
+      <div class="s2-icon">🎯</div>
+      <div class="s2-title">Zero Hallucinations</div>
+      <div class="s2-body">A controlled RAG pipeline cross-checks your secure knowledge vault before every answer, preventing AI errors entirely.</div>
+    </div>
+    <div class="s2-card">
+      <div class="s2-num">3</div>
+      <div class="s2-icon">⚡</div>
+      <div class="s2-title">Always On</div>
+      <div class="s2-body">Engaging fans, empowering staff, and representing your brand at peak quality — 24 hours a day, 7 days a week.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SLIDE 3 ══ -->
+<div class="slide dark-slide" id="s3">
+  <div class="s3-head">
+    <div class="eyebrow" style="justify-content:center">The Complete Ecosystem</div>
+    <h2 class="h2">A phased approach to future-proofing AmitKapoor.com</h2>
+  </div>
+  <div class="eco-wrap">
+    <div class="eco-col">
+      <div class="eco-node accent">
+        <div class="en-tag r">🗂 Data Sources</div>
+        <div class="en-name">Data Foundations</div>
+        <div class="en-desc">EPUBs · PDFs · Books · Interview Transcripts · Chunking Pipeline</div>
+      </div>
+    </div>
+    <div class="eco-arr"></div>
+    <div class="eco-col">
+      <div class="eco-node accent">
+        <div class="en-tag r">🧠 Core Engine</div>
+        <div class="en-name">Vector DB + Claude</div>
+        <div class="en-desc">Pinecone · RAG · claude-sonnet-4-6 · Semantic search</div>
+      </div>
+    </div>
+    <div class="eco-arr"></div>
+    <div class="eco-col" style="gap:0.5rem">
+      <div class="eco-node blue">
+        <div class="en-tag b">💻 Phase 1</div>
+        <div class="en-name">Ask Amit Chatbot</div>
+        <div class="en-desc">Next.js · Text chat · Web visitor</div>
+      </div>
+      <div class="eco-node purple">
+        <div class="en-tag p">🔒 Internal</div>
+        <div class="en-name">Staff Dashboard</div>
+        <div class="en-desc">Private · Auth-gated · Unlimited queries</div>
+      </div>
+    </div>
+    <div class="eco-arr"></div>
+    <div class="eco-col" style="gap:0.5rem">
+      <div class="eco-node green">
+        <div class="en-tag g">🎙 Phase 2</div>
+        <div class="en-name">ElevenLabs TTS</div>
+        <div class="en-desc">Amit's cloned voice · Streamed audio response</div>
+      </div>
+      <div class="eco-node green">
+        <div class="en-tag g">📞 Telephony</div>
+        <div class="en-name">Twilio / Vapi</div>
+        <div class="en-desc">Inbound calls · Whisper STT → LLM → TTS</div>
+      </div>
+    </div>
+  </div>
+  <div class="eco-legend">
+    <div class="eco-pip pip-r">● Data Brain</div>
+    <div class="eco-pip pip-b">● Phase 1 — Web</div>
+    <div class="eco-pip pip-p">● Internal</div>
+    <div class="eco-pip pip-g">● Phase 2 — Voice</div>
+  </div>
+</div>
+
+<!-- ══ SLIDE 4 ══ -->
+<div class="slide dark-slide" id="s4">
+  <div class="eyebrow">Component 01</div>
+  <h2 class="h1">Data Foundations —<br><em>Building the Brain</em></h2>
+  <div class="s4-grid">
+    <div>
+      <div class="biz-box">
+        <div class="biz-lbl">🏢 Business Value</div>
+        <div class="biz-txt">We take your life's work — books, EPUBs, interviews — and place them in a <strong>secure digital vault</strong>. The AI can only speak using your actual words, guaranteeing authenticity and preventing fabrication.</div>
+      </div>
+    </div>
+    <div>
+      <div class="biz-lbl" style="margin-bottom:0.75rem;">⚙️ Technical Stack</div>
+      <div class="tech-stack">
+        <div class="ts-item">
+          <div class="ts-bar"></div>
+          <div><div class="ts-name">Data Ingestion Pipeline</div><div class="ts-desc">Parses EPUB, PDF, TXT into semantic chunks with overlap and metadata tags.</div></div>
+        </div>
+        <div class="ts-item">
+          <div class="ts-bar"></div>
+          <div><div class="ts-name">Vector Database (Pinecone)</div><div class="ts-desc">Stores embeddings for semantic similarity search — retrieves the most relevant passage for any question.</div></div>
+        </div>
+        <div class="ts-item">
+          <div class="ts-bar"></div>
+          <div><div class="ts-name">LLM — Claude Sonnet 4.6</div><div class="ts-desc">Acts as orchestrator: retrieves context from Pinecone via RAG, synthesizes a grounded, in-character answer.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SLIDE 5 ══ -->
+<div class="slide off-slide" id="s5">
+  <div class="eyebrow" style="color:var(--red)">Component 02</div>
+  <h2 class="h1 dark-text">Internal Dashboard —<br><em>Your Team's Superpower</em></h2>
+  <div class="s5-grid">
+    <div class="s5-card">
+      <div class="s5-icon-wrap">🔒</div>
+      <div><div class="s5-title">Private & Secure</div><div class="s5-body">Auth-gated dashboard exclusively for your staff. No public access, no rate limits, no exposure.</div></div>
+    </div>
+    <div class="s5-card">
+      <div class="s5-icon-wrap">⚡</div>
+      <div><div class="s5-title">Instant Retrieval</div><div class="s5-body">Cross-check facts, pull exact quotes from your books, draft emails in your tone — in seconds.</div></div>
+    </div>
+    <div class="s5-card">
+      <div class="s5-icon-wrap">🔄</div>
+      <div><div class="s5-title">Frictionless Workflows</div><div class="s5-body">Workers become autonomous. Less bottlenecking, faster decision-making, fewer interruptions.</div></div>
+    </div>
+    <div class="s5-card">
+      <div class="s5-icon-wrap">🛠</div>
+      <div><div class="s5-title">Advanced Prompting</div><div class="s5-body">Behind-the-scenes prompt engineering allows richer queries than the public chat interface.</div></div>
+    </div>
+  </div>
+  <div class="s5-stats">
+    <div class="stat-cell"><div class="stat-val">∞</div><div class="stat-lbl">Queries / day</div></div>
+    <div class="stat-cell"><div class="stat-val">RAG</div><div class="stat-lbl">Direct pipeline</div></div>
+    <div class="stat-cell"><div class="stat-val">🔐</div><div class="stat-lbl">Auth-gated</div></div>
+    <div class="stat-cell"><div class="stat-val">&lt;1s</div><div class="stat-lbl">Response time</div></div>
+  </div>
+</div>
+
+<!-- ══ SLIDE 6 ══ -->
+<div class="slide dark-slide" id="s6">
+  <div class="phase-pip p1-pip"><span class="p-pip-dot"></span> Phase 1 — Now</div>
+  <h2 class="h1">A Revamped<br><em>Web Presence</em></h2>
+  <div class="s6-grid">
+    <div class="step-list">
+      <div class="step">
+        <div class="step-n">01</div>
+        <div><div class="step-title">Lightning-Fast Frontend</div><div class="step-desc">Full rewrite in Next.js 14 + React. Edge-cached globally via Vercel. Loads in under 1 second worldwide.</div></div>
+      </div>
+      <div class="step">
+        <div class="step-n">02</div>
+        <div><div class="step-title">The "Ask Amit" Dialogue</div><div class="step-desc">Custom React chat component — text state, loading indicators, markdown rendering, streamed responses.</div></div>
+      </div>
+      <div class="step">
+        <div class="step-n">03</div>
+        <div><div class="step-title">API Bridge Layer</div><div class="step-desc">Next.js API routes connecting chat UI to the Claude RAG backend. Instant, grounded answers.</div></div>
+      </div>
+    </div>
+    <div class="browser">
+      <div class="browser-bar">
+        <div class="b-dot" style="background:#e63946"></div>
+        <div class="b-dot" style="background:#FBBF24"></div>
+        <div class="b-dot" style="background:#34D399"></div>
+        <div class="b-url">amitkapoor.com</div>
+      </div>
+      <div class="browser-body">
+        <div class="b-hero">
+          <div class="b-h">The Economics of Tomorrow, Today.</div>
+          <div class="b-p">Harvard · Stanford · WEF · Thinkers50</div>
+        </div>
+        <div class="b-input">
+          <div class="b-ph">"What drives India's competitiveness?"</div>
+          <div class="b-send">→</div>
+        </div>
+        <div class="b-resp">
+          <div class="b-resp-lbl">Amit's Answer</div>
+          <div class="b-resp-txt">India's competitiveness rests on three pillars: factor conditions, demand quality, and institutional strength...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SLIDE 7 ══ -->
+<div class="slide" id="s7">
+  <div class="phase-pip p2-pip"><span class="p-pip-dot"></span> Phase 2 — Voice & Telephony</div>
+  <h2 class="h1">Giving the<br><em>Engine a Voice</em></h2>
+  <div class="s7-grid">
+    <div class="s7-card">
+      <div class="s7-icon">🎙</div>
+      <div class="s7-title">Professional Voice Clone</div>
+      <div class="s7-body">ElevenLabs creates a perfect replication of your cadence and tone from a 30-minute recording session.</div>
+      <span class="tech-chip">ElevenLabs Professional</span>
+    </div>
+    <div class="s7-card">
+      <div class="s7-icon">🔊</div>
+      <div class="s7-title">Web Audio — "Listen to Answer"</div>
+      <div class="s7-body">Claude generates the text. ElevenLabs streams it as audio. Visitors hear you answer in real time.</div>
+      <span class="tech-chip">ElevenLabs TTS API</span>
+    </div>
+    <div class="s7-card">
+      <div class="s7-icon">📞</div>
+      <div class="s7-title">Direct Dial</div>
+      <div class="s7-body">Fans and staff can call a phone number to have a real-time voice conversation with your digital twin.</div>
+      <span class="tech-chip">Twilio / Vapi</span>
+    </div>
+    <div class="s7-card">
+      <div class="s7-icon">🗣</div>
+      <div class="s7-title">Speech-to-Text Pipeline</div>
+      <div class="s7-body">Caller audio → Whisper STT → Claude RAG → ElevenLabs TTS → back to caller. Sub-2s latency.</div>
+      <span class="tech-chip">OpenAI Whisper</span>
+    </div>
+  </div>
+  <div class="flow">
+    <div class="flow-node">Caller speaks</div>
+    <div class="flow-arr">→</div>
+    <div class="flow-node">Whisper STT</div>
+    <div class="flow-arr">→</div>
+    <div class="flow-node">Claude + RAG</div>
+    <div class="flow-arr">→</div>
+    <div class="flow-node">ElevenLabs TTS</div>
+    <div class="flow-arr">→</div>
+    <div class="flow-node">Amit's voice responds</div>
+  </div>
+</div>
+
+<!-- ══ SLIDE 8 ══ -->
+<div class="slide" id="s8">
+  <div class="eyebrow">The Action Plan</div>
+  <h2 class="h1">Next Steps —<br><em>Let's Build</em></h2>
+  <div class="s8-grid">
+    <div class="s8-card">
+      <div class="s8-n">1</div>
+      <div class="s8-icon">📚</div>
+      <div class="s8-title">Build the Brain</div>
+      <div class="s8-body">Ingest EPUBs, PDFs, and transcripts. Chunk, embed, and upload to Pinecone. The knowledge vault is the foundation of everything.</div>
+      <div class="s8-chip">→ Data Ingestion · Pinecone</div>
+    </div>
+    <div class="s8-card">
+      <div class="s8-n">2</div>
+      <div class="s8-icon">💻</div>
+      <div class="s8-title">Launch Phase 1 Website</div>
+      <div class="s8-body">Finalize the Next.js revamp. Connect Ask Amit to the Claude RAG backend. Deploy to Vercel.</div>
+      <div class="s8-chip">→ Next.js · Claude API · Vercel</div>
+    </div>
+    <div class="s8-card">
+      <div class="s8-n">3</div>
+      <div class="s8-icon">🎙</div>
+      <div class="s8-title">Record Voice Sample</div>
+      <div class="s8-body">Record a 30-minute high-quality voice sample for ElevenLabs Professional Clone. This unlocks Phase 2.</div>
+      <div class="s8-chip">→ ElevenLabs · Phase 2 Unlock</div>
+    </div>
+  </div>
+  <div class="s8-foot">
+    <div class="s8-quote">"Your knowledge, always on. Your voice, always available."</div>
+    <div class="s8-by">Prepared by MJ · Q2 2026</div>
+  </div>
+</div>
+
+</div><!-- /deck -->
+
+<!-- Navigation -->
+<div class="nav" id="nav"></div>
+
+<script>
+const slides = document.querySelectorAll('.slide');
+const nav = document.getElementById('nav');
+const counter = document.getElementById('counter');
+const progress = document.getElementById('progress');
+let cur = 0;
+
+const prev = document.createElement('button');
+prev.className = 'nav-btn'; prev.innerHTML = '&#8592;';
+nav.appendChild(prev);
+
+const dots = [...slides].map((_, i) => {
+  const d = document.createElement('div');
+  d.className = 'dot' + (i === 0 ? ' active' : '');
+  d.onclick = () => go(i);
+  nav.appendChild(d);
+  return d;
+});
+
+const next = document.createElement('button');
+next.className = 'nav-btn'; next.innerHTML = '&#8594;';
+nav.appendChild(next);
+
+function go(n) {
+  if (n < 0 || n >= slides.length) return;
+  slides[cur].classList.remove('active');
+  slides[cur].classList.add('prev');
+  setTimeout(() => slides[cur < n ? cur : n + 1]?.classList.remove('prev'), 600);
+  dots[cur].classList.remove('active');
+  cur = n;
+  slides[cur].classList.add('active');
+  dots[cur].classList.add('active');
+  counter.textContent = String(cur + 1).padStart(2,'0') + ' / ' + String(slides.length).padStart(2,'0');
+  progress.style.width = ((cur + 1) / slides.length * 100) + '%';
+}
+
+next.onclick = () => go(cur + 1);
+prev.onclick = () => go(cur - 1);
+
+document.addEventListener('keydown', e => {
+  if (['ArrowRight','ArrowDown',' '].includes(e.key)) { e.preventDefault(); go(cur + 1); }
+  if (['ArrowLeft','ArrowUp'].includes(e.key)) { e.preventDefault(); go(cur - 1); }
+});
+
+// Touch swipe
+let tx = 0;
+document.addEventListener('touchstart', e => tx = e.touches[0].clientX, { passive: true });
+document.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - tx;
+  if (Math.abs(dx) > 50) go(dx < 0 ? cur + 1 : cur - 1);
+});
+
+progress.style.width = (1 / slides.length * 100) + '%';
+</script>
+</body>
+</html>
