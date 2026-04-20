@@ -14,14 +14,22 @@ const MODEL_ID = 'eleven_turbo_v2_5'
 const MAX_CHARS = 1200
 
 export async function POST(req: Request) {
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
   try {
     const email = extractEmail(req)
-    if (!email) return authResponse()
+    if (!email) {
+      console.log(JSON.stringify({ route: 'tts', event: 'blocked_unauth', ip, ts: new Date().toISOString() }))
+      return authResponse()
+    }
 
     const limit = checkLimit(email, 'tts')
-    if (!limit.ok) return limitResponse(limit)
+    if (!limit.ok) {
+      console.log(JSON.stringify({ route: 'tts', event: 'blocked_limit', email, reason: limit.reason, ip, ts: new Date().toISOString() }))
+      return limitResponse(limit)
+    }
 
     const { text } = await req.json()
+    console.log(JSON.stringify({ route: 'tts', event: 'accepted', email, ip, chars: text?.length || 0, ts: new Date().toISOString() }))
     if (!text || typeof text !== 'string') {
       return new Response('text required', { status: 400 })
     }

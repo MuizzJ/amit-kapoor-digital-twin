@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import { Analytics } from '@vercel/analytics/react'
 
 export const metadata: Metadata = {
   title: 'Dr. Amit Kapoor — Economist · Strategist · Author',
@@ -10,7 +11,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="font-sans bg-white text-[#0a0a0a]">{children}</body>
+      <body className="font-sans bg-white text-[#0a0a0a]">
+        {children}
+        <Analytics />
+      </body>
     </html>
   )
 }

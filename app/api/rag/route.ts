@@ -29,17 +29,28 @@ function loadSystemPrompt(): string {
 }
 
 export async function POST(req: Request) {
+  const startedAt = Date.now()
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
   try {
     const email = extractEmail(req)
-    if (!email) return authResponse()
+    if (!email) {
+      console.log(JSON.stringify({ route: 'rag', event: 'blocked_unauth', ip, ts: new Date().toISOString() }))
+      return authResponse()
+    }
 
     const limit = checkLimit(email, 'rag')
-    if (!limit.ok) return limitResponse(limit)
+    if (!limit.ok) {
+      console.log(JSON.stringify({ route: 'rag', event: 'blocked_limit', email, reason: limit.reason, ip, ts: new Date().toISOString() }))
+      return limitResponse(limit)
+    }
 
     const { messages } = await req.json()
     if (!Array.isArray(messages) || messages.length === 0) {
       return new Response('messages required', { status: 400 })
     }
+
+    const question = [...messages].reverse().find((m: any) => m.role === 'user')?.content?.slice(0, 200) || ''
+    console.log(JSON.stringify({ route: 'rag', event: 'accepted', email, ip, question, ts: new Date().toISOString() }))
 
     const lastUser = [...messages].reverse().find((m: any) => m.role === 'user')
     if (!lastUser?.content) return new Response('no user message', { status: 400 })
