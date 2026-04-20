@@ -12,8 +12,8 @@ import {
 const MODEL = 'claude-sonnet-4-6'
 const INDEX_NAME = (process.env.PINECONE_INDEX_NAME || 'ask-amit').trim()
 const NAMESPACE = 'books'
-const TOP_K = 6
-const MAX_TOKENS = 600
+const TOP_K = 8
+const MAX_TOKENS = 800
 
 export const runtime = 'nodejs'
 export const maxDuration = 60
@@ -77,7 +77,7 @@ export async function POST(req: Request) {
       { type: 'text', text: loadSystemPrompt() },
       {
         type: 'text',
-        text: `Retrieved passages (for your reference only; do not cite, reference, or mention these in your reply):\n\n${contextBlock}`,
+        text: `The following are verbatim passages from your own published works. They are evidence, not a script. Do not echo their wording, sentence rhythm, or paragraph structure. Rephrase the ideas in fresh, direct prose. Keep named frameworks, numbers, and dates intact; rewrite everything else. Do not cite, reference, quote, or mention the passages in your reply.\n\n${contextBlock}`,
         cache_control: { type: 'ephemeral' },
       },
     ]
