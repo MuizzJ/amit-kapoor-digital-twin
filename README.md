@@ -144,17 +144,6 @@ prompts/
 data/                source material (gitignored)
 ```
 
-## Costs (approximate)
-
-| Scenario | Monthly |
-|---|---|
-| Dev / personal testing | ~$0 |
-| Pitch demos | ~$1 |
-| Amit + staff active use | ~$30 |
-| Public launch | ~$245 |
-
-Per-question: ~$0.02 cold, ~$0.008 with prompt cache hit. See `summary.html` for the full breakdown.
-
 ## Roadmap
 
 - [ ] Deploy to Vercel with shared-secret auth
