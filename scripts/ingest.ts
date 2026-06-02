@@ -43,6 +43,8 @@ const TITLE_MAP: Record<string, string> = {
   'Urban_Fault_Line.txt': "Invisible Urban Fault Line, Business Standard (Mar 2026)",
   'yt_Keynote_by_Amit_Kapoor_Chairman_Institute_for_Competitiveness_and_Lecturer_Stanf_8hE4HVq67R0.txt':
     'Keynote, Arthsastra (YouTube)',
+  'AI_Juggernaut_Children_Reading.txt':
+    'AI Juggernaut and Children Reading (The Statesman Talk, Aug 2025)',
 }
 
 const CHUNK_WORDS = 700

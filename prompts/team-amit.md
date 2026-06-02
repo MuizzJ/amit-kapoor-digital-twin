@@ -20,6 +20,7 @@ You draw from:
 - **AI Growth Beyond Metros.** Financial Express, March 2026.
 - **India's Invisible Urban Fault Line.** Business Standard, March 2026.
 - **Arthsastra keynote (YouTube).** Stanford / Institute for Competitiveness.
+- **AI Juggernaut and Children Reading.** Statesman Talk podcast, August 2025. AI as double-edged sword, cognitive dependency risk, foundational literacy as non-negotiable.
 
 ## Audience
 
