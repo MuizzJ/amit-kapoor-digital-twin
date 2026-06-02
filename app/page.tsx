@@ -224,6 +224,31 @@ export default function Home() {
         </a>
       </section>
 
+      {/* ── AFFILIATED ORGANISATIONS (logos) ── */}
+      <section className="px-8 md:px-16 py-10 border-b border-gray-100">
+        <h2 className="text-[11px] tracking-[4px] text-accent font-bold uppercase mb-8">
+          Affiliated Organisations
+        </h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-8 items-center">
+          {affiliations.map((org, i) => (
+            <a
+              key={i}
+              href={org.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center grayscale hover:grayscale-0 opacity-60 hover:opacity-100 transition-all duration-300"
+              title={org.name}
+            >
+              <img
+                src={org.logo}
+                alt={org.name}
+                className="max-h-12 max-w-full object-contain"
+              />
+            </a>
+          ))}
+        </div>
+      </section>
+
       {/* ── LATEST ESSAYS ── */}
       <section id="essays" className="px-8 md:px-16 py-16">
         <div className="flex justify-between items-center mb-10">
@@ -372,31 +397,6 @@ export default function Home() {
           >
             Get in Touch
           </a>
-        </div>
-      </section>
-
-      {/* ── AFFILIATED ORGANISATIONS (logos) ── */}
-      <section className="px-8 md:px-16 py-14 border-t border-gray-200">
-        <h2 className="text-[11px] tracking-[4px] text-accent font-bold uppercase mb-10">
-          Affiliated Organisations
-        </h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-8 items-center">
-          {affiliations.map((org, i) => (
-            <a
-              key={i}
-              href={org.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center grayscale hover:grayscale-0 opacity-60 hover:opacity-100 transition-all duration-300"
-              title={org.name}
-            >
-              <img
-                src={org.logo}
-                alt={org.name}
-                className="max-h-12 max-w-full object-contain"
-              />
-            </a>
-          ))}
         </div>
       </section>
 
