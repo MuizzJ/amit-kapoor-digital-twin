@@ -29,10 +29,10 @@ type Bucket = { count: number; reset: number }
 type UserBuckets = { rag: Bucket; tts: Bucket }
 
 const WINDOW_MS = 24 * 3600_000
-const RAG_MAX_PER_USER = 3
-const TTS_MAX_PER_USER = 5
-const GLOBAL_RAG_MAX = 60
-const GLOBAL_TTS_MAX = 120
+const RAG_MAX_PER_USER = 30
+const TTS_MAX_PER_USER = 30
+const GLOBAL_RAG_MAX = 300
+const GLOBAL_TTS_MAX = 300
 
 const users = new Map<string, UserBuckets>()
 let globalRag: Bucket = { count: 0, reset: Date.now() + WINDOW_MS }

@@ -111,7 +111,7 @@ const exploreTopics = [
 ]
 
 type Source = { title: string; chunk_index: number; score: number }
-type Msg = { role: 'user' | 'ai'; text: string; sources?: Source[] }
+type Msg = { role: 'user' | 'ai'; text: string; sources?: Source[]; webSearched?: boolean }
 
 const stripInlineCitations = (text: string): string =>
   text
@@ -365,7 +365,7 @@ function AskAmitWidget() {
                 const last = prev[lastIdx]
                 if (last?.role !== 'ai') return prev
                 const next = prev.slice(0, lastIdx)
-                next.push({ ...last, sources: evt.sources })
+                next.push({ ...last, sources: evt.sources, webSearched: evt.webSearched })
                 return next
               })
             } else if (evt.type === 'error') {
@@ -550,7 +550,7 @@ function AskAmitWidget() {
                             </>
                           )}
                         </button>
-                        {uniqueTitles.length > 0 && (
+                        {(uniqueTitles.length > 0 || msg.webSearched) && (
                           <div className="flex flex-wrap gap-1.5 items-center">
                             <span className="text-[9px] text-gray-400 tracking-[1.5px] uppercase font-semibold">
                               From
@@ -563,6 +563,15 @@ function AskAmitWidget() {
                                 {t}
                               </span>
                             ))}
+                            {msg.webSearched && (
+                              <span className="text-[10px] text-blue-600 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+                                <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                  <circle cx="11" cy="11" r="8" />
+                                  <path d="m21 21-4.35-4.35" />
+                                </svg>
+                                Web
+                              </span>
+                            )}
                           </div>
                         )}
                       </div>
