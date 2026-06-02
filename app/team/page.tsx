@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 
 const EMAIL_KEY = 'team_email'
 
-type OutputFormat = 'chat' | 'article' | 'critique' | 'analysis' | 'infographic' | 'slides'
+type OutputFormat = 'chat' | 'article' | 'critique' | 'analysis' | 'infographic' | 'slides' | 'chart'
 type Source = { title: string; chunk_index: number; score: number }
 type Msg = {
   role: 'user' | 'ai'
@@ -12,6 +12,7 @@ type Msg = {
   sources?: Source[]
   webSearched?: boolean
   outputFormat?: OutputFormat
+  confidence?: number
 }
 
 const FORMAT_LABELS: Record<OutputFormat, { label: string; icon: string; hint: string }> = {
@@ -21,6 +22,29 @@ const FORMAT_LABELS: Record<OutputFormat, { label: string; icon: string; hint: s
   analysis:    { label: 'Analysis',    icon: '📊', hint: 'Memo format with framework application + So What' },
   infographic: { label: 'Infographic', icon: '🎨', hint: 'Rendered HTML — visual data / key ideas at a glance' },
   slides:      { label: 'Slides',      icon: '📑', hint: 'Keyboard-navigable HTML deck (5–8 slides)' },
+  chart:       { label: 'Chart',       icon: '📈', hint: 'Chart.js data visualisation — bar, line, radar, or doughnut' },
+}
+
+function ConfidenceBadge({ score }: { score: number }) {
+  const pct = Math.round(score * 100)
+  const { label, bg, text, border } =
+    score >= 0.78
+      ? { label: 'High retrieval match', bg: 'rgba(16,185,129,.08)', text: '#6ee7b7', border: 'rgba(16,185,129,.25)' }
+      : score >= 0.60
+      ? { label: 'Moderate retrieval match', bg: 'rgba(245,158,11,.08)', text: '#fcd34d', border: 'rgba(245,158,11,.25)' }
+      : { label: 'Low retrieval match — verify carefully', bg: 'rgba(239,68,68,.08)', text: '#fca5a5', border: 'rgba(239,68,68,.25)' }
+  return (
+    <span
+      title="How closely the retrieved passages matched the question (cosine similarity, top-3 average)"
+      style={{ background: bg, color: text, border: `1px solid ${border}` }}
+      className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full tracking-wide"
+    >
+      <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+      {pct}% · {label}
+    </span>
+  )
 }
 
 const stripMarkdownForDisplay = (text: string) =>
@@ -131,7 +155,7 @@ export default function TeamPage() {
                 const last = prev[lastIdx]
                 if (last?.role !== 'ai') return prev
                 const next = prev.slice(0, lastIdx)
-                next.push({ ...last, sources: evt.sources, webSearched: evt.webSearched })
+                next.push({ ...last, sources: evt.sources, webSearched: evt.webSearched, confidence: evt.confidence })
                 return next
               })
             } else if (evt.type === 'done') {
@@ -297,7 +321,7 @@ export default function TeamPage() {
 
         {messages.map((msg, i) => {
           const isLastAi = i === messages.length - 1 && msg.role === 'ai'
-          const isHtmlOutput = (msg.outputFormat === 'infographic' || msg.outputFormat === 'slides') && msg.role === 'ai'
+          const isHtmlOutput = (msg.outputFormat === 'infographic' || msg.outputFormat === 'slides' || msg.outputFormat === 'chart') && msg.role === 'ai'
           const uniqueTitles = msg.sources ? Array.from(new Set(msg.sources.map((s) => s.title))) : []
 
           return (
@@ -365,37 +389,48 @@ export default function TeamPage() {
                     </div>
                   )}
 
-                  {/* Actions + sources */}
+                  {/* Confidence + sources + disclaimer */}
                   {msg.role === 'ai' && !streaming && msg.text.length > 10 && (
-                    <div className="flex flex-wrap items-center gap-3 mt-2 px-1">
-                      <button
-                        onClick={() => copyText(msg.text)}
-                        className="text-[10px] text-[#475569] hover:text-white transition-colors tracking-[1.5px] uppercase font-semibold"
-                      >
-                        Copy
-                      </button>
-                      {(msg.outputFormat === 'infographic' || msg.outputFormat === 'slides') && htmlPreview && isLastAi && (
+                    <div className="flex flex-col gap-2 mt-2 px-1">
+                      <div className="flex flex-wrap items-center gap-3">
                         <button
-                          onClick={() => downloadHtml(htmlPreview, `amit-${msg.outputFormat}-${Date.now()}.html`)}
-                          className="text-[10px] text-[#e63946] hover:text-white transition-colors tracking-[1.5px] uppercase font-semibold"
+                          onClick={() => copyText(msg.text)}
+                          className="text-[10px] text-[#475569] hover:text-white transition-colors tracking-[1.5px] uppercase font-semibold"
                         >
-                          Download HTML
+                          Copy
                         </button>
-                      )}
-                      {(uniqueTitles.length > 0 || msg.webSearched) && (
-                        <div className="flex flex-wrap gap-1.5 items-center ml-1">
-                          <span className="text-[9px] text-[#334155] tracking-[1.5px] uppercase font-semibold">Sources</span>
-                          {uniqueTitles.map((t, j) => (
-                            <span key={j} className="text-[10px] text-[#64748b] bg-white/4 border border-white/8 px-2 py-0.5 rounded-full">{t}</span>
-                          ))}
-                          {msg.webSearched && (
-                            <span className="text-[10px] text-[#3b82f6] bg-[#3b82f6]/8 border border-[#3b82f6]/20 px-2 py-0.5 rounded-full flex items-center gap-1">
-                              <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                              Web
-                            </span>
-                          )}
-                        </div>
-                      )}
+                        {isHtmlOutput && htmlPreview && isLastAi && (
+                          <button
+                            onClick={() => downloadHtml(htmlPreview, `amit-${msg.outputFormat}-${Date.now()}.html`)}
+                            className="text-[10px] text-[#e63946] hover:text-white transition-colors tracking-[1.5px] uppercase font-semibold"
+                          >
+                            Download HTML
+                          </button>
+                        )}
+                        {typeof msg.confidence === 'number' && (
+                          <ConfidenceBadge score={msg.confidence} />
+                        )}
+                        {(uniqueTitles.length > 0 || msg.webSearched) && (
+                          <div className="flex flex-wrap gap-1.5 items-center">
+                            <span className="text-[9px] text-[#334155] tracking-[1.5px] uppercase font-semibold">Sources</span>
+                            {uniqueTitles.map((t, j) => (
+                              <span key={j} className="text-[10px] text-[#64748b] bg-white/4 border border-white/8 px-2 py-0.5 rounded-full">{t}</span>
+                            ))}
+                            {msg.webSearched && (
+                              <span className="text-[10px] text-[#3b82f6] bg-[#3b82f6]/8 border border-[#3b82f6]/20 px-2 py-0.5 rounded-full flex items-center gap-1">
+                                <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                                Web
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      {/* Persistent disclaimer */}
+                      <p className="text-[10px] text-[#334155] leading-relaxed border-t border-white/5 pt-2">
+                        ⚠️ AI-generated from Amit Kapoor's indexed works. Always cross-check with{' '}
+                        <strong className="text-[#475569]">Dr. Amit Kapoor as the final authority</strong>{' '}
+                        before use. Errors and omissions are possible.
+                      </p>
                     </div>
                   )}
                 </div>

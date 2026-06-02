@@ -314,12 +314,14 @@ html,body{height:100%;overflow:hidden;background:var(--n);font-family:'Plus Jaka
       <div class="tmc-title">Team Dashboard</div>
       <div class="tmc-url">vercel.app/team</div>
       <div class="tmc-list">
-        <div class="tmc-item"><strong>6 output modes:</strong> Chat · Article (1500w) · Critique · Analysis · Infographic (rendered HTML) · Slides (HTML deck)</div>
+        <div class="tmc-item"><strong>7 output modes:</strong> Chat · Article · Critique · Analysis · Infographic · Slides · <strong>Chart</strong> (Chart.js data viz)</div>
         <div class="tmc-item">Deeper web search (8 sources, advanced depth) + RAG combined</div>
         <div class="tmc-item">Paste a 2000-word draft — get structured critique with revision suggestions</div>
         <div class="tmc-item">Generate infographics and slide decks downloadable as HTML</div>
         <div class="tmc-item">Admin emails only · unlimited queries · no rate limits</div>
+        <div class="tmc-item">Confidence score on every response (retrieval match quality)</div>
         <div class="tmc-item">Copy + Download buttons on all outputs</div>
+        <div class="tmc-item" style="color:#fcd34d">⚠️ Always cross-check with Dr. Amit Kapoor as final authority</div>
       </div>
       <div class="tmc-who"><strong>Who:</strong> Amit's research team, writers, analysts — no cloning required, just visit /team</div>
     </div>
@@ -388,9 +390,15 @@ html,body{height:100%;overflow:hidden;background:var(--n);font-family:'Plus Jaka
     <div class="tgc"><div class="tgl">Draft critique</div><div class="tgt">Get pushback before it reaches Amit</div><div class="tgp">"Here's the core argument: [para]. Does this align with your frameworks, and where would you push back?"</div><div class="tgn">Substantive critique grounded in Amit's positions — raises the floor of what reaches his desk.</div></div>
     <div class="tgc"><div class="tgl">Framework check</div><div class="tgt">Verify before a client presentation</div><div class="tgp">"We're presenting the 4S framework to [client]. Here's our interpretation: [text]. Where does this diverge?"</div><div class="tgn">Catches misattributions before they go live. RAG traces every claim back to the source.</div></div>
     <div class="tgc"><div class="tgl">Amit's take</div><div class="tgt">Brief a client with Amit's lens</div><div class="tgp">"What's your view on [policy / event]? We're briefing [client] tomorrow."</div><div class="tgn">Web search fires automatically if the topic is current — grounded in Amit's work AND today's news.</div></div>
-    <div class="tgc"><div class="tgl">Infographic</div><div class="tgt">Visualise a framework for a deck</div><div class="tgp">"Create an infographic showing the competitiveness-to-prosperity gap across Indian states."</div><div class="tgn">Returns a rendered HTML infographic — download and embed directly in any presentation.</div></div>
+    <div class="tgc"><div class="tgl">Chart / Visual</div><div class="tgt">Generate a data chart from Amit's work</div><div class="tgp">"Chart India's Social Progress Index scores vs GDP per capita across states — use my data from The Elephant Moves."</div><div class="tgn">Returns a Chart.js visualisation rendered in the browser. Download as HTML and embed in any deck. Always includes a data-source note and disclaimer.</div></div>
   </div>
-  <div class="tgf"><div class="tgfq">"The clone becomes everyone's first stop before they go to Amit himself."</div><div class="tgfs">vercel.app/team · admin = unlimited</div></div>
+  <div class="tgf">
+    <div class="tgfq">"The clone becomes everyone's first stop before they go to Amit himself."</div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:.3rem">
+      <div class="tgfs">vercel.app/team · admin = unlimited</div>
+      <div style="font-size:.6rem;color:#fcd34d;font-weight:600">⚠️ Always verify with Dr. Amit Kapoor as final authority</div>
+    </div>
+  </div>
 </div>
 
 <!-- S7 GIT REPO -->

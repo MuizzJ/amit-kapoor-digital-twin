@@ -72,6 +72,8 @@ const FORMAT_INSTRUCTIONS: Record<string, string> = {
     'OUTPUT FORMAT: Output a single self-contained HTML document with inline CSS — a clean, visually compelling infographic. Color palette: dark navy (#0B1929) background, white text, red (#e63946) accents. Include title, 1-line subtitle, core content (cards, flow, or stat blocks), and a source attribution line. Output ONLY the raw HTML with no explanation, no markdown fences, nothing before or after the DOCTYPE.',
   slides:
     'OUTPUT FORMAT: Output a self-contained keyboard-navigable HTML slide deck. Dark navy (#0B1929) background, red (#e63946) accents, white text. 5–8 slides: title → context → framework → data/evidence → recommendation → next steps. Each slide one clear idea. Include JS for arrow-key navigation. Output ONLY the raw HTML with no explanation, no markdown fences, nothing before or after the DOCTYPE.',
+  chart:
+    'OUTPUT FORMAT: Output a single self-contained HTML document using Chart.js loaded from CDN (https://cdn.jsdelivr.net/npm/chart.js). Extract, estimate, or synthesise the most relevant numeric data from the question and retrieved passages — state-level scores, time series, comparative figures, index rankings, or sector breakdowns. Choose the most appropriate chart type (bar, line, scatter, radar, or doughnut). Style: dark navy (#0B1929) background, white axis labels and title, red (#e63946) or blue/green accent colors for data series. Include: a clear chart title, axis labels, a 1-line data-source note at the bottom (cite the specific work the data came from), and a disclaimer "Estimates based on Amit Kapoor\'s published work — verify with primary sources." Make the canvas responsive (width: 100%, max-width: 900px, centred). Output ONLY the raw HTML with no explanation, no markdown fences, nothing before or after the DOCTYPE.',
   chat: '',
 }
 
@@ -131,9 +133,16 @@ export async function POST(req: Request) {
       .map((h, i) => `[${i + 1}] ${h.fields.title}, chunk ${h.fields.chunk_index}\n${h.fields.chunk_text}`)
       .join('\n\n---\n\n')
 
+    // Confidence: average cosine similarity of top-3 hits (0–1 scale)
+    const topScores = hits.slice(0, 3).map((h) => h._score || 0)
+    const confidence = topScores.length > 0
+      ? topScores.reduce((s, v) => s + v, 0) / topScores.length
+      : 0
+
     if (webContext) {
       console.log(JSON.stringify({ route: 'team', event: 'web_search', email, ts: new Date().toISOString() }))
     }
+    console.log(JSON.stringify({ route: 'team', event: 'confidence', email, confidence: confidence.toFixed(3), ts: new Date().toISOString() }))
 
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY!.trim() })
 
@@ -181,7 +190,7 @@ export async function POST(req: Request) {
       async start(controller) {
         controller.enqueue(
           encoder.encode(
-            `data: ${JSON.stringify({ type: 'sources', sources, webSearched: !!webContext, outputFormat })}\n\n`
+            `data: ${JSON.stringify({ type: 'sources', sources, webSearched: !!webContext, outputFormat, confidence })}\n\n`
           )
         )
         try {
