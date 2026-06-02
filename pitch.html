@@ -247,7 +247,7 @@ html,body{height:100%;overflow:hidden;background:var(--n);font-family:'Plus Jaka
 </head>
 <body>
 <div class="bar" id="bar"></div>
-<div class="ctr" id="ctr">01 / 10</div>
+<div class="ctr" id="ctr">01 / 11</div>
 <div class="deck" id="deck">
 
 <!-- S1 TITLE -->
@@ -467,8 +467,56 @@ html,body{height:100%;overflow:hidden;background:var(--n);font-family:'Plus Jaka
   </div>
 </div>
 
-<!-- S10 ROADMAP -->
-<div class="slide dk" id="s10">
+<!-- S10 TECH STACK -->
+<div class="slide dk2" id="s10">
+  <div class="ey">How It Was Built</div>
+  <h2 class="h1">The Tech Stack — <em>What Each Tool Does</em></h2>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:1.5rem">
+    <div style="border-radius:.75rem;padding:1.35rem;border:1px solid rgba(230,57,70,.25);background:rgba(230,57,70,.04)">
+      <div style="font-size:1.6rem;margin-bottom:.6rem">🤖</div>
+      <div style="font-size:.6rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:#f87171;margin-bottom:.35rem">Claude Sonnet 4.6</div>
+      <div style="font-size:.82rem;font-weight:700;color:var(--wh);margin-bottom:.4rem">The Brain</div>
+      <div style="font-size:.7rem;color:var(--sl2);line-height:1.65">Anthropic's AI model — reads Amit's retrieved passages and synthesises a fresh, first-person answer in his voice. Handles streaming, prompt caching, and tool use. Never invents — only speaks from evidence.</div>
+    </div>
+    <div style="border-radius:.75rem;padding:1.35rem;border:1px solid rgba(59,130,246,.25);background:rgba(59,130,246,.04)">
+      <div style="font-size:1.6rem;margin-bottom:.6rem">🧩</div>
+      <div style="font-size:.6rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:#93c5fd;margin-bottom:.35rem">Pinecone</div>
+      <div style="font-size:.82rem;font-weight:700;color:var(--wh);margin-bottom:.4rem">The Memory</div>
+      <div style="font-size:.7rem;color:var(--sl2);line-height:1.65">A vector database that stores every chunk of Amit's books and essays as a mathematical fingerprint. When a question arrives, Pinecone finds the 8–10 most relevant passages in milliseconds using semantic (meaning-based) search, not keyword matching.</div>
+    </div>
+    <div style="border-radius:.75rem;padding:1.35rem;border:1px solid rgba(139,92,246,.25);background:rgba(139,92,246,.04)">
+      <div style="font-size:1.6rem;margin-bottom:.6rem">🎙</div>
+      <div style="font-size:.6rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:#c4b5fd;margin-bottom:.35rem">ElevenLabs</div>
+      <div style="font-size:.82rem;font-weight:700;color:var(--wh);margin-bottom:.4rem">The Voice</div>
+      <div style="font-size:.7rem;color:var(--sl2);line-height:1.65">Cloned Amit's voice from a recording. Converts the AI-generated text to audio using that cloned voice model in real time. The "Listen" button on every answer streams this audio directly to the browser.</div>
+    </div>
+    <div style="border-radius:.75rem;padding:1.35rem;border:1px solid rgba(245,158,11,.25);background:rgba(245,158,11,.04)">
+      <div style="font-size:1.6rem;margin-bottom:.6rem">🔍</div>
+      <div style="font-size:.6rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:#fcd34d;margin-bottom:.35rem">Tavily</div>
+      <div style="font-size:.82rem;font-weight:700;color:var(--wh);margin-bottom:.4rem">The News Feed</div>
+      <div style="font-size:.7rem;color:var(--sl2);line-height:1.65">A web search API purpose-built for AI. When the question mentions current events (crises, budgets, recent data), Tavily fetches live web results. Claude then grounds Amit's frameworks in what is actually happening today.</div>
+    </div>
+    <div style="border-radius:.75rem;padding:1.35rem;border:1px solid rgba(16,185,129,.25);background:rgba(16,185,129,.04)">
+      <div style="font-size:1.6rem;margin-bottom:.6rem">▲</div>
+      <div style="font-size:.6rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:#6ee7b7;margin-bottom:.35rem">Vercel</div>
+      <div style="font-size:.82rem;font-weight:700;color:var(--wh);margin-bottom:.4rem">The Host</div>
+      <div style="font-size:.7rem;color:var(--sl2);line-height:1.65">Hosts the entire website globally — auto-deploys from GitHub, scales to any traffic, and handles streaming responses. Every git push triggers a new production deployment in ~30 seconds. Free tier covers all current usage.</div>
+    </div>
+    <div style="border-radius:.75rem;padding:1.35rem;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03)">
+      <div style="font-size:1.6rem;margin-bottom:.6rem">⚡</div>
+      <div style="font-size:.6rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--sl2);margin-bottom:.35rem">Next.js + React</div>
+      <div style="font-size:.82rem;font-weight:700;color:var(--wh);margin-bottom:.4rem">The Framework</div>
+      <div style="font-size:.7rem;color:var(--sl2);line-height:1.65">The web framework running the site. It handles routing, the chat widget, the team dashboard, and the API routes that orchestrate all the other tools. The streaming typewriter effect and source chips are all built in React.</div>
+    </div>
+  </div>
+  <div style="margin-top:1.1rem;padding:.7rem 1.25rem;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);border-radius:.6rem;display:flex;align-items:center;gap:2.5rem;flex-wrap:wrap">
+    <div style="font-size:.68rem;color:var(--sl2)"><strong style="color:rgba(255,255,255,.6)">Total cost to run:</strong> ~$0.003 per cached question · ~$0.02 cold · ElevenLabs ~$0.002/response · Vercel free tier · Pinecone free tier</div>
+    <div style="margin-left:auto;font-size:.6rem;font-family:'Fira Code',monospace;color:#93c5fd;background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.15);border-radius:.3rem;padding:.2rem .55rem;white-space:nowrap">github.com/MuizzJ/amit-kapoor-digital-twin</div>
+  </div>
+</div>
+
+<!-- S11 ROADMAP -->
+<div class="slide dk" id="s11">
   <div class="ey">What's Next</div>
   <h2 class="h1">Roadmap &amp; <em>Your Feedback</em></h2>
   <div class="rg">
