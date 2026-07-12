@@ -102,14 +102,6 @@ const getFollowups = (sourceTitles: string[], alreadyAsked: Set<string>): string
   return picked
 }
 
-const exploreTopics = [
-  "India's GDP methodology",
-  'AI & economic competitiveness',
-  'Agricultural reform impact',
-  'Social progress metrics',
-  "Porter's Diamond framework",
-]
-
 type Source = { title: string; chunk_index: number; score: number }
 type Msg = { role: 'user' | 'ai'; text: string; sources?: Source[]; webSearched?: boolean }
 
@@ -689,67 +681,6 @@ function AskAmitWidget() {
   )
 }
 
-function ExploreWidget() {
-  const [open, setOpen] = useState(false)
-
-  return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
-      {open && (
-        <div className="mb-3 w-72 bg-[#0f172a] border border-accent/20 shadow-2xl rounded-2xl rounded-br-none overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
-          <div className="px-4 py-3 border-b border-white/5 flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-              <span className="text-[11px] font-bold tracking-[2px] text-accent uppercase">
-                Explore Ideas
-              </span>
-            </div>
-            <button
-              onClick={() => setOpen(false)}
-              className="text-gray-600 hover:text-gray-300 text-xl leading-none transition-colors"
-            >
-              ×
-            </button>
-          </div>
-          <div className="p-4">
-            <p className="text-[11px] text-gray-500 mb-4 leading-relaxed">
-              Deep-dive topics from Amit's research and writing.
-            </p>
-            <div className="flex flex-col gap-2">
-              {exploreTopics.map((topic, i) => (
-                <button
-                  key={i}
-                  className="text-left text-[11px] text-gray-400 border border-white/5 px-3 py-2.5 rounded-lg hover:border-accent/50 hover:text-accent transition-all duration-150 flex justify-between items-center group"
-                >
-                  {topic}
-                  <span className="opacity-0 group-hover:opacity-100 transition-opacity text-accent">
-                    →
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      <button
-        onClick={() => setOpen(!open)}
-        className={`flex items-center gap-2 text-[11px] tracking-[1.5px] uppercase px-4 py-3 shadow-lg transition-all duration-200 rounded-full font-semibold ${
-          open
-            ? 'bg-accent text-white border border-accent'
-            : 'bg-[#0f172a] border border-accent text-accent hover:bg-accent hover:text-white'
-        }`}
-      >
-        💬 Chat Now
-      </button>
-    </div>
-  )
-}
-
 export default function VoiceWidget() {
-  return (
-    <>
-      <AskAmitWidget />
-      <ExploreWidget />
-    </>
-  )
+  return <AskAmitWidget />
 }
