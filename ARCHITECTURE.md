@@ -269,7 +269,7 @@ No rate limiting is in place in Phase 1. Hour 4 in the plan carves out 15 minute
 
 **Hour 4, Deploy.** `vercel deploy`, add the env vars, smoke-test three production questions. Add the source-chip polish and the IP-based rate limiter if time allows.
 
-**Hour 5, Phase 2 voice.** A new route `app/api/tts/route.ts` that takes the final answer text, calls `elevenlabs.textToSpeech.stream(voiceId, { text, modelId: 'eleven_turbo_v2_5', outputFormat: 'mp3_44100_128' })`, and pipes audio back as `audio/mpeg`. A "Listen" button next to each assistant bubble calls it, turns the response into a blob URL, and plays it through a hidden `<audio>` element. Voice ID locked in: `TvgKRDHpNi1aqml8qok6`.
+**Hour 5, Phase 2 voice.** A new route `app/api/tts/route.ts` that takes the final answer text, calls `elevenlabs.textToSpeech.stream(voiceId, { text, modelId: 'eleven_turbo_v2_5', outputFormat: 'mp3_44100_128' })`, and pipes audio back as `audio/mpeg`. A "Listen" button next to each assistant bubble calls it, turns the response into a blob URL, and plays it through a hidden `<audio>` element. Voice ID configured via `ELEVENLABS_VOICE_ID` env var.
 
 **Hour 6, Harden.** Tighten the prompt on edge cases, verify `usage.cache_read_input_tokens > 0` on a second identical request, mobile responsive sweep on the widget, document how to re-ingest when new content lands.
 
@@ -290,7 +290,7 @@ npm install
 #   PINECONE_API_KEY=...
 #   PINECONE_INDEX_NAME=ask-amit
 #   ELEVENLABS_API_KEY=...
-#   ELEVENLABS_VOICE_ID=TvgKRDHpNi1aqml8qok6
+#   ELEVENLABS_VOICE_ID=your-voice-id
 
 # one-time: ingest the corpus into Pinecone (takes 2 to 3 minutes)
 npx tsx scripts/ingest.ts

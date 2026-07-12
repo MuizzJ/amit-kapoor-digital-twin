@@ -38,3 +38,7 @@ skills-lock.json
 
 
 .vercel
+
+# generated cluster artifacts (contain book-text excerpts; regenerate locally)
+clusters-data.json
+cluster.html
