@@ -187,6 +187,19 @@ Wix cannot host a Next.js app, so keep this project on Vercel and connect the tw
 - **Embed**: add a Wix *Embed → Custom Element / iframe* block pointing at the Vercel URL, so the chat appears inside a Wix page.
 - Content updates never touch Wix: add sources and re-ingest here, redeploy, and the embedded/linked experience updates everywhere.
 
+## Housing the source library on Umbrel (optional)
+
+Pinecone stores only embeddings. The raw books, essays, and transcripts live in `data/` on whichever machine runs ingestion, and `data/` is gitignored, so the corpus needs a permanent home. If you run an [Umbrel](https://umbrel.com/) home server, make it the system of record:
+
+1. On Umbrel, install a file-sync app from the App Store. **Nextcloud** (folder you can browse and share) or **Syncthing** (silent two-way sync) both work.
+2. Create a folder on Umbrel, for example `amit-twin/corpus`, and upload every source file: book PDFs, essay TXTs, slide PPTXs, YouTube transcript files.
+3. On the laptop that runs ingestion, connect the sync client to that folder and point it at (or copy into) the repo's `data/` directory.
+4. Ingest as usual: `npx tsx scripts/ingest.ts`. Pinecone gets the embeddings, Umbrel keeps the originals.
+5. Also sync the generated artifacts worth keeping: `clusters-data.json` and `cluster.html` after a cluster regen.
+6. When new material is added later, drop it into the Umbrel folder first, let it sync down, then run the ingest step. That way the Umbrel copy is always the complete library, and any machine can rebuild the Pinecone index from it.
+
+Umbrel here is the canonical library plus backup. Pinecone, Anthropic, and ElevenLabs remain cloud services; if you ever need to rebuild from scratch, everything required is the repo plus the Umbrel folder plus your API keys.
+
 ## Project layout
 
 ```
