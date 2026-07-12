@@ -74,6 +74,10 @@ const FORMAT_INSTRUCTIONS: Record<string, string> = {
     'OUTPUT FORMAT: Output a self-contained keyboard-navigable HTML slide deck. Dark navy (#0B1929) background, red (#e63946) accents, white text. 5–8 slides: title → context → framework → data/evidence → recommendation → next steps. Each slide one clear idea. Include JS for arrow-key navigation. Output ONLY the raw HTML with no explanation, no markdown fences, nothing before or after the DOCTYPE.',
   chart:
     'OUTPUT FORMAT: Output a single self-contained HTML document using Chart.js loaded from CDN (https://cdn.jsdelivr.net/npm/chart.js). Extract, estimate, or synthesise the most relevant numeric data from the question and retrieved passages — state-level scores, time series, comparative figures, index rankings, or sector breakdowns. Choose the most appropriate chart type (bar, line, scatter, radar, or doughnut). Style: dark navy (#0B1929) background, white axis labels and title, red (#e63946) or blue/green accent colors for data series. Include: a clear chart title, axis labels, a 1-line data-source note at the bottom (cite the specific work the data came from), and a disclaimer "Estimates based on Amit Kapoor\'s published work — verify with primary sources." Make the canvas responsive (width: 100%, max-width: 900px, centred). Output ONLY the raw HTML with no explanation, no markdown fences, nothing before or after the DOCTYPE.',
+  social:
+    'OUTPUT FORMAT: Produce two ready-to-post versions of the same core argument. First a LinkedIn post (150–300 words, first person, one sharp thesis, a concrete data point or example, ends with a question that invites discussion, at most 2 hashtags). Then an X thread (5–8 numbered tweets, each under 280 characters, no hashtags, thread opens with the strongest claim). Separate them with "## LinkedIn" and "## X thread" headers. Written in Amit\'s voice throughout.',
+  speech:
+    'OUTPUT FORMAT: Talking points for a keynote or panel, written to be spoken aloud — short sentences, no citations, no reading-voice prose. Structure: 2–3 alternative opening hooks; 3–5 core points, each with a one-line data anchor and a one-line story or example; one anticipated tough question with a crisp response; a closing line that lands. Use headers for each section.',
   chat: '',
 }
 
@@ -115,7 +119,8 @@ export async function POST(req: Request) {
     const needsSearch = TEMPORAL_SIGNALS.test(lastUser.content) ||
       outputFormat === 'article' ||
       outputFormat === 'analysis' ||
-      outputFormat === 'infographic'
+      outputFormat === 'infographic' ||
+      outputFormat === 'social'
 
     const [pineconeResult, webContext] = await Promise.all([
       (() => {

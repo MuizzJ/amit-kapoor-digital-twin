@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 
 const EMAIL_KEY = 'team_email'
 
-type OutputFormat = 'chat' | 'article' | 'critique' | 'analysis' | 'infographic' | 'slides' | 'chart'
+type OutputFormat = 'chat' | 'article' | 'critique' | 'analysis' | 'infographic' | 'slides' | 'chart' | 'social' | 'speech'
 type Source = { title: string; chunk_index: number; score: number }
 type Msg = {
   role: 'user' | 'ai'
@@ -13,6 +13,15 @@ type Msg = {
   webSearched?: boolean
   outputFormat?: OutputFormat
   confidence?: number
+  html?: string
+}
+
+const HTML_FORMATS: OutputFormat[] = ['infographic', 'slides', 'chart']
+
+const extractHtml = (raw: string): string | null => {
+  const cleaned = raw.replace(/^\s*```(?:html)?\s*/i, '').replace(/```\s*$/, '')
+  const match = cleaned.match(/<!DOCTYPE[^>]*>[\s\S]*/i) || cleaned.match(/<html[\s\S]*/i)
+  return match ? match[0] : null
 }
 
 const FORMAT_LABELS: Record<OutputFormat, { label: string; icon: string; hint: string }> = {
@@ -23,6 +32,8 @@ const FORMAT_LABELS: Record<OutputFormat, { label: string; icon: string; hint: s
   infographic: { label: 'Infographic', icon: '🎨', hint: 'Rendered HTML — visual data / key ideas at a glance' },
   slides:      { label: 'Slides',      icon: '📑', hint: 'Keyboard-navigable HTML deck (5–8 slides)' },
   chart:       { label: 'Chart',       icon: '📈', hint: 'Chart.js data visualisation — bar, line, radar, or doughnut' },
+  social:      { label: 'Social',      icon: '📣', hint: 'LinkedIn post + X thread, ready to publish' },
+  speech:      { label: 'Speech',      icon: '🎤', hint: 'Keynote / panel talking points, written to be spoken' },
 }
 
 function ConfidenceBadge({ score }: { score: number }) {
@@ -61,7 +72,6 @@ export default function TeamPage() {
   const [input, setInput] = useState('')
   const [outputFormat, setOutputFormat] = useState<OutputFormat>('chat')
   const [streaming, setStreaming] = useState(false)
-  const [htmlPreview, setHtmlPreview] = useState<string | null>(null)
 
   const scrollRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -94,7 +104,6 @@ export default function TeamPage() {
     const history = [...messages, userMsg]
     setMessages([...history, { role: 'ai', text: '', outputFormat }])
     setInput('')
-    setHtmlPreview(null)
     setStreaming(true)
 
     try {
@@ -159,9 +168,18 @@ export default function TeamPage() {
                 return next
               })
             } else if (evt.type === 'done') {
-              if (outputFormat === 'infographic' || outputFormat === 'slides') {
-                const htmlMatch = fullText.match(/<!DOCTYPE[^>]*>[\s\S]*/i) || fullText.match(/<html[\s\S]*/i)
-                if (htmlMatch) setHtmlPreview(htmlMatch[0])
+              if (HTML_FORMATS.includes(outputFormat)) {
+                const html = extractHtml(fullText)
+                if (html) {
+                  setMessages((prev) => {
+                    const lastIdx = prev.length - 1
+                    const last = prev[lastIdx]
+                    if (last?.role !== 'ai') return prev
+                    const next = prev.slice(0, lastIdx)
+                    next.push({ ...last, html })
+                    return next
+                  })
+                }
               }
             } else if (evt.type === 'error') {
               throw new Error(evt.error)
@@ -252,7 +270,7 @@ export default function TeamPage() {
           </button>
           {messages.length > 0 && (
             <button
-              onClick={() => { setMessages([]); setHtmlPreview(null) }}
+              onClick={() => setMessages([])}
               disabled={streaming}
               className="text-[10px] text-[#475569] hover:text-white transition-colors tracking-[1.5px] uppercase font-semibold disabled:opacity-40"
             >
@@ -321,7 +339,7 @@ export default function TeamPage() {
 
         {messages.map((msg, i) => {
           const isLastAi = i === messages.length - 1 && msg.role === 'ai'
-          const isHtmlOutput = (msg.outputFormat === 'infographic' || msg.outputFormat === 'slides' || msg.outputFormat === 'chart') && msg.role === 'ai'
+          const isHtmlOutput = msg.role === 'ai' && !!msg.html
           const uniqueTitles = msg.sources ? Array.from(new Set(msg.sources.map((s) => s.title))) : []
 
           return (
@@ -344,19 +362,19 @@ export default function TeamPage() {
                 </div>
               ) : (
                 <div className="w-full">
-                  {isHtmlOutput && htmlPreview && isLastAi ? (
+                  {isHtmlOutput && msg.html ? (
                     <div className="border border-white/10 rounded-xl overflow-hidden">
                       <div className="bg-white/4 border-b border-white/6 px-4 py-2 flex items-center justify-between">
                         <span className="text-[10px] text-[#64748b] tracking-[1.5px] uppercase font-semibold">Preview</span>
                         <div className="flex items-center gap-2">
                           <button
-                            onClick={() => downloadHtml(htmlPreview, `amit-${msg.outputFormat}-${Date.now()}.html`)}
+                            onClick={() => downloadHtml(msg.html!, `amit-${msg.outputFormat}-${i}.html`)}
                             className="text-[10px] text-[#e63946] font-bold tracking-[1.5px] uppercase hover:text-white transition-colors"
                           >
                             Download HTML
                           </button>
                           <button
-                            onClick={() => copyText(htmlPreview)}
+                            onClick={() => copyText(msg.html!)}
                             className="text-[10px] text-[#64748b] font-bold tracking-[1.5px] uppercase hover:text-white transition-colors"
                           >
                             Copy
@@ -364,7 +382,7 @@ export default function TeamPage() {
                         </div>
                       </div>
                       <iframe
-                        srcDoc={htmlPreview}
+                        srcDoc={msg.html}
                         className="w-full h-[500px] bg-white"
                         sandbox="allow-scripts"
                         title="Generated output"
@@ -399,9 +417,9 @@ export default function TeamPage() {
                         >
                           Copy
                         </button>
-                        {isHtmlOutput && htmlPreview && isLastAi && (
+                        {isHtmlOutput && msg.html && (
                           <button
-                            onClick={() => downloadHtml(htmlPreview, `amit-${msg.outputFormat}-${Date.now()}.html`)}
+                            onClick={() => downloadHtml(msg.html!, `amit-${msg.outputFormat}-${i}.html`)}
                             className="text-[10px] text-[#e63946] hover:text-white transition-colors tracking-[1.5px] uppercase font-semibold"
                           >
                             Download HTML

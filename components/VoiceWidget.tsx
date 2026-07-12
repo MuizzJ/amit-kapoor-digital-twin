@@ -115,6 +115,7 @@ type Msg = { role: 'user' | 'ai'; text: string; sources?: Source[]; webSearched?
 
 const stripInlineCitations = (text: string): string =>
   text
+    .replace(/\s*[—–]\s*/g, ', ')
     .replace(/\s*\[[^\]]*?(?:chunk|pg|page|p\.\s*\d|passage|book)[^\]]*?\]/gi, '')
     .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
     .replace(/\*\*([^*\n]+?)\*\*/g, '$1')

@@ -13,7 +13,7 @@ const MODEL = 'claude-sonnet-4-6'
 const INDEX_NAME = (process.env.PINECONE_INDEX_NAME || 'ask-amit').trim()
 const NAMESPACE = 'books'
 const TOP_K = 8
-const MAX_TOKENS = 800
+const MAX_TOKENS = 400
 
 export const runtime = 'nodejs'
 export const maxDuration = 90
